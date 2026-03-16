@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InmoPanel - CRM Inmobiliaria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f0f14;
+            --bg-card: #1c1c28;
+            --bg-hover: #2a2a3c;
+            --text-main: #ffffff;
+            --text-muted: #8b8b9b;
+            --accent-gold: #c9a84c;
+            --accent-gold-hover: #dcc273;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Tipografía */
+        h1, h2, h3, h4 { color: var(--text-main); font-weight: 600; }
+        p { color: var(--text-muted); font-size: 0.9rem; }
+        
+        /* Layout */
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0 1rem 2rem 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-gold);
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .brand-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--accent-gold), #8a7333);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-dark);
+            font-size: 1.2rem;
+        }
+
+        .nav-menu { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+        
+        .nav-item {
+            padding: 0.875rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background-color: var(--accent-gold);
+            color: var(--bg-dark);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .topbar {
+            height: 80px;
+            padding: 0 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-bar {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1.25rem;
+            width: 350px;
+            color: var(--text-main);
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .search-bar:focus { border-color: var(--accent-gold); }
+
+        .user-profile { display: flex; align-items: center; gap: 1rem; }
+        .user-profile .avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            background-color: var(--accent-gold); display: flex;
+            align-items: center; justify-content: center;
+            color: var(--bg-dark); font-weight: 600; font-size: 1.1rem;
+        }
+
+        .view-container {
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        .view-container.show { opacity: 1; }
+
+        /* UI Components */
+        .grid { display: grid; gap: 1.5rem; }
+        .grid-kpis { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 2rem;}
+        
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .card:hover { transform: translateY(-2px); border-color: rgba(201, 168, 76, 0.3); }
+
+        .kpi-title { color: var(--text-muted); font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; }
+        .kpi-value { font-size: 2rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem;}
+        .kpi-trend { font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem; }
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .section-header h2 { font-size: 1.25rem; }
+
+        /* Tablas */
+        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 1.25rem 1.5rem; color: var(--text-muted); font-weight: 500; font-size: 0.875rem; border-bottom: 1px solid var(--border-color); background: rgba(0,0,0,0.2); }
+        td { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        tbody tr { transition: background-color 0.2s; }
+        tbody tr:hover { background-color: var(--bg-hover); }
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* Badges */
+        .badge { padding: 0.35rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+        .badge-venta { background-color: rgba(96, 165, 250, 0.15); color: var(--info); }
+        .badge-alquiler { background-color: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        
+        .phase-captado { background-color: rgba(139, 139, 155, 0.15); color: var(--text-muted); }
+        .phase-visitas { background-color: rgba(96, 165, 250, 0.15); color: var(--info); }
+        .phase-oferta { background-color: rgba(251, 191, 36, 0.15); color: var(--warning); }
+        .phase-firma { background-color: rgba(201, 168, 76, 0.15); color: var(--accent-gold); }
+        .phase-cerrado { background-color: rgba(52, 211, 153, 0.15); color: var(--success); }
+
+        /* Kanban */
+        .kanban-board { display: flex; gap: 1.5rem; overflow-x: auto; padding-bottom: 1rem; min-height: 600px; }
+        .kanban-column { flex: 1; min-width: 280px; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1rem; }
+        .kanban-col-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 0.5rem; }
+        .kanban-col-header h3 { font-size: 0.9rem; font-weight: 600; }
+        .kanban-count { background: var(--bg-hover); padding: 0.1rem 0.6rem; border-radius: 12px; font-size: 0.8rem; }
+        
+        .kanban-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s; overflow: hidden; }
+        .kanban-card:hover { border-color: var(--accent-gold); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .kanban-card-img { width: calc(100% + 2rem); height: 140px; margin: -1rem -1rem 1rem -1rem; object-fit: cover; border-bottom: 1px solid var(--border-color); }
+        .kanban-card-title { font-weight: 600; margin-bottom: 0.5rem; font-size: 0.95rem; }
+        .kanban-card-price { color: var(--accent-gold); font-weight: 700; margin-bottom: 0.75rem; }
+        .kanban-card-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; border-top: 1px solid var(--border-color); padding-top: 0.75rem;}
+        
+        .avatar-sm { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: bold; color: white;}
+        
+        .recent-prop-img { width: 48px; height: 48px; border-radius: 6px; object-fit: cover; margin-right: 1rem; }
+
+        /* Agentes Grid */
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+        .agent-card { display: flex; flex-direction: column; gap: 1rem; }
+        .agent-header { display: flex; align-items: center; gap: 1rem; }
+        .agent-avatar { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; color: white; }
+        .agent-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; }
+        .stat-box text { font-size: 0.8rem; color: var(--text-muted); display: block; }
+        .stat-box value { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+
+        /* Utilidades */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .text-gold { color: var(--accent-gold); }
+        .text-success { color: var(--success); }
+        
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-content { background: var(--bg-card); border: 1px solid var(--border-color); width: 600px; max-width: 90%; border-radius: 12px; padding: 2rem; transform: translateY(20px); transition: transform 0.3s; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .modal-close:hover { color: var(--text-main); }
+
+        #chart-container { width: 100%; height: 300px; margin-top: 2rem; position: relative;}
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">I</div>
+            InmoPanel
+        </div>
+        <ul class="nav-menu">
+            <li class="nav-item active" data-view="dashboard">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                Dashboard
+            </li>
+            <li class="nav-item" data-view="agentes">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                Agentes
+            </li>
+            <li class="nav-item" data-view="propiedades">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                Propiedades
+            </li>
+            <li class="nav-item" data-view="operaciones">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Operaciones (Cerradas)
+            </li>
+            <li class="nav-item" data-view="finanzas">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Finanzas
+            </li>
+            <li class="nav-item" data-view="terceros">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                Notarios y Peritos
+            </li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <header class="topbar">
+            <div>
+                <h2 id="current-view-title">Dashboard</h2>
+                <p id="current-view-subtitle">Resumen general de la agencia</p>
+            </div>
+            <div class="user-profile">
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; font-size: 0.95rem;">Carlos Director</div>
+                    <div style="font-size: 0.8rem; color: var(--accent-gold);">Administrador</div>
+                </div>
+                <div class="avatar">CD</div>
+            </div>
+        </header>
+        
+        <div id="view-container" class="view-container show">
+            <!-- El contenido se renderiza vía JS -->
+        </div>
+    </main>
+
+    <!-- Modal para Fichas -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Ficha</h2>
+                <button class="modal-close" id="modal-close">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DATA & LOGIC -->
+    <script>
+        // === MOCK DATA ===
+        const formatMoney = (amount) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
+
+        const agents = [
+            { id: 1, name: "Laura Gómez", initials: "LG", color: "#ec4899", assigned: 5, sales: 8, rents: 12, commissions: 48500, rating: 4.8 },
+            { id: 2, name: "Marcos Silva", initials: "MS", color: "#3b82f6", assigned: 3, sales: 15, rents: 2, commissions: 92000, rating: 4.9 },
+            { id: 3, name: "Elena Ramos", initials: "ER", color: "#10b981", assigned: 6, sales: 4, rents: 18, commissions: 35000, rating: 4.5 },
+            { id: 4, name: "David Ruiz", initials: "DR", color: "#f59e0b", assigned: 2, sales: 11, rents: 5, commissions: 67000, rating: 4.7 },
+            { id: 5, name: "Sofía Vega", initials: "SV", color: "#8b5cf6", assigned: 4, sales: 6, rents: 8, commissions: 41000, rating: 4.6 },
+            { id: 6, name: "Javier Pino", initials: "JP", color: "#f43f5e", assigned: 0, sales: 2, rents: 4, commissions: 12500, rating: 4.2 }
+        ];
+
+        const propertyStatuses = ["captado", "visitas", "oferta", "firma", "cerrado"];
+        const properties = [
+            { id: "P-101", type: "venta", status: "visitas", address: "Calle Mayor 12, 4ºB", price: 350000, size: 120, agentId: 2, date: "2023-09-10", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (10/09)", "Documentación OK (15/09)", "En visitas desde 20/09"] },
+            { id: "P-102", type: "alquiler", status: "captado", address: "Av. Ilustración 45", price: 1200, size: 85, agentId: 1, date: "2023-10-01", image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (01/10)"] },
+            { id: "P-103", type: "venta", status: "oferta", address: "Plaza España 3", price: 450000, size: 150, agentId: 2, date: "2023-08-15", image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (15/08)", "Visitas (01/09)", "Oferta recibida: 430k (05/10)"] },
+            { id: "P-104", type: "venta", status: "firma", address: "C/ Rosalía 88, 1ºA", price: 210000, size: 90, agentId: 4, date: "2023-07-20", image: "https://images.unsplash.com/photo-1600566753086-00f18efc2291?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (20/07)", "Oferta aceptada (10/09)", "Firma en Notaría el 15/10"] },
+            { id: "P-105", type: "alquiler", status: "cerrado", address: "Gran Vía 120", price: 1800, size: 110, agentId: 3, date: "2023-09-01", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Firma contrato (30/09)"] },
+            { id: "P-106", type: "venta", status: "visitas", address: "Paseo Marítimo 12", price: 850000, size: 200, agentId: 5, date: "2023-09-25", image: "https://images.unsplash.com/photo-1512915922686-57c11dde9b6b?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (25/09)", "En visitas (02/10)"] },
+            { id: "P-107", type: "alquiler", status: "visitas", address: "C/ Luna 5", price: 950, size: 65, agentId: 1, date: "2023-09-28", image: "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado (28/09)"] },
+            { id: "P-108", type: "venta", status: "captado", address: "Av. Libertad 33", price: 295000, size: 105, agentId: 4, date: "2023-10-05", image: "https://images.unsplash.com/photo-1600561758934-2e2124db5d4a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Captado y pendiente fotos (05/10)"] },
+            { id: "P-109", type: "venta", status: "oferta", address: "C/ Sol 14, Ático", price: 520000, size: 130, agentId: 2, date: "2023-08-10", image: "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Oferta recibida: 500k"] },
+            { id: "P-110", type: "alquiler", status: "firma", address: "Plaza Mayor 1", price: 2500, size: 160, agentId: 3, date: "2023-09-15", image: "https://images.unsplash.com/photo-1600585154526-990dced4ea0d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: ["Fianza depositada"] },
+            { id: "P-111", type: "venta", status: "cerrado", address: "C/ Velázquez 40", price: 1200000, size: 280, agentId: 1, date: "2023-05-10", image: "https://images.unsplash.com/photo-1600607688969-a5bfcd64bd40?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-112", type: "alquiler", status: "visitas", address: "Av. Goya 15", price: 1100, size: 90, agentId: 5, date: "2023-10-02", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-113", type: "venta", status: "captado", address: "C/ Princesa 22", price: 420000, size: 140, agentId: 3, date: "2023-10-06", image: "https://images.unsplash.com/photo-1600585154365-4b711e513511?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-114", type: "venta", status: "visitas", address: "Paseo Castellana 100", price: 950000, size: 180, agentId: 4, date: "2023-09-18", image: "https://images.unsplash.com/photo-1600607687644-aac4c15cecb1?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-115", type: "alquiler", status: "oferta", address: "C/ Fuencarral 80", price: 1400, size: 100, agentId: 1, date: "2023-09-20", image: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-116", type: "venta", status: "firma", address: "C/ Serrano 55", price: 1800000, size: 300, agentId: 5, date: "2023-06-15", image: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-117", type: "alquiler", status: "captado", address: "Av. América 10", price: 850, size: 60, agentId: 2, date: "2023-10-08", image: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-118", type: "venta", status: "visitas", address: "C/ Alcalá 200", price: 380000, size: 110, agentId: 3, date: "2023-09-22", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-119", type: "venta", status: "oferta", address: "Retiro 5", price: 750000, size: 160, agentId: 4, date: "2023-08-30", image: "https://images.unsplash.com/photo-1600561758934-2e2124db5d4a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] },
+            { id: "P-120", type: "alquiler", status: "cerrado", address: "C/ Goya 80", price: 2000, size: 140, agentId: 5, date: "2023-08-01", image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60", history: [] }
+        ];
+
+        const operations = [
+            { id: "OP-001", propertyId: "P-111", agentId: 1, buyer: "Inversiones RL SL", price: 1200000, commTotal: 60000, commAgency: 42000, commAgent: 18000, notaryId: 1, expertId: null, date: "2023-09-15" },
+            { id: "OP-002", propertyId: "P-105", agentId: 3, buyer: "Marta Díaz", price: 1800, commTotal: 1800, commAgency: 1260, commAgent: 540, notaryId: null, expertId: null, date: "2023-09-30" },
+            { id: "OP-003", propertyId: "P-120", agentId: 5, buyer: "Tech Solutions Inc", price: 2000, commTotal: 2000, commAgency: 1400, commAgent: 600, notaryId: null, expertId: null, date: "2023-08-15" },
+            { id: "OP-004", propertyId: "P-090", agentId: 2, buyer: "Carlos Ruiz", price: 250000, commTotal: 12500, commAgency: 8750, commAgent: 3750, notaryId: 2, expertId: 1, date: "2023-08-10" },
+            { id: "OP-005", propertyId: "P-085", agentId: 4, buyer: "Ana Gómez", price: 320000, commTotal: 16000, commAgency: 11200, commAgent: 4800, notaryId: 3, expertId: 2, date: "2023-07-25" },
+            { id: "OP-006", propertyId: "P-080", agentId: 1, buyer: "Luis Pérez", price: 450000, commTotal: 22500, commAgency: 15750, commAgent: 6750, notaryId: 1, expertId: null, date: "2023-07-10" },
+            { id: "OP-007", propertyId: "P-075", agentId: 3, buyer: "Elena Torres", price: 1500, commTotal: 1500, commAgency: 1050, commAgent: 450, notaryId: null, expertId: null, date: "2023-06-20" },
+            { id: "OP-008", propertyId: "P-070", agentId: 5, buyer: "Pedro Sánchez", price: 550000, commTotal: 27500, commAgency: 19250, commAgent: 8250, notaryId: 2, expertId: 1, date: "2023-06-05" },
+            { id: "OP-009", propertyId: "P-065", agentId: 2, buyer: "María López", price: 280000, commTotal: 14000, commAgency: 9800, commAgent: 4200, notaryId: 3, expertId: 2, date: "2023-05-15" },
+            { id: "OP-010", propertyId: "P-060", agentId: 4, buyer: "Jorge Martín", price: 380000, commTotal: 19000, commAgency: 13300, commAgent: 5700, notaryId: 1, expertId: null, date: "2023-05-01" }
+        ];
+
+        const thirdParties = {
+            notaries: [
+                { id: 1, name: "Notaría Rueda & Asoc.", ops: 12, fees: 8500 },
+                { id: 2, name: "Don Alberto Valdés", ops: 8, fees: 6200 },
+                { id: 3, name: "Notaría Central 24", ops: 5, fees: 3800 }
+            ],
+            experts: [
+                { id: 1, name: "Peritajes Global SL", ops: 15, fees: 4500 },
+                { id: 2, name: "Arquitectura Díaz", ops: 9, fees: 2700 }
+            ]
+        };
+
+        // Helpers
+        const getAgent = (id) => agents.find(a => a.id === id);
+        const getProperty = (id) => properties.find(p => p.id === id);
+        const cap = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+        // === RENDERERS ===
+        const viewContainer = document.getElementById('view-container');
+        const viewTitle = document.getElementById('current-view-title');
+        const viewSubtitle = document.getElementById('current-view-subtitle');
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+        const modalTitle = document.getElementById('modal-title');
+
+        document.getElementById('modal-close').onclick = () => modal.classList.remove('active');
+
+        // Render Dashboard
+        function renderDashboard() {
+            viewTitle.textContent = "Dashboard";
+            viewSubtitle.textContent = "Resumen general de la agencia (Octubre 2023)";
+            
+            const totalRevenue = operations.reduce((acc, op) => acc + op.commAgency, 0);
+            const activeProps = properties.filter(p => p.status !== "cerrado").length;
+            const opsThisMonth = operations.filter(op => op.date.startsWith("2023-09")).length;
+            const mvp = [...agents].sort((a,b) => b.commissions - a.commissions)[0];
+
+            let html = `
+                <div class="grid grid-kpis">
+                    <div class="card">
+                        <div class="kpi-title">Facturación Agencia (YTD)</div>
+                        <div class="kpi-value text-gold">${formatMoney(totalRevenue)}</div>
+                        <div class="kpi-trend trend-up">↑ 12% vs año anterior</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-title">Propiedades Activas</div>
+                        <div class="kpi-value">${activeProps}</div>
+                        <div class="kpi-trend trend-up">↑ 4 esta semana</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-title">Operaciones (Últ. 30 días)</div>
+                        <div class="kpi-value">${opsThisMonth}</div>
+                        <div class="kpi-trend trend-down">↓ 2 vs mes pasado</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-title">Agente MVP</div>
+                        <div class="kpi-value" style="font-size: 1.5rem;">${mvp.name}</div>
+                        <div class="kpi-trend text-gold">★ ${mvp.rating} / 5.0</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Ventas por Agente (€)</h2>
+                        </div>
+                        <canvas id="agentChart" width="100%" height="250"></canvas>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="section-header">
+                            <h2>Últimas Captaciones</h2>
+                        </div>
+                        <div class="recent-list">
+                            ${properties.slice(0,4).map(p => `
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding: 1rem 0;">
+                                    <div style="display: flex; align-items: center;">
+                                        <img src="${p.image}" alt="Render ${p.id}" class="recent-prop-img">
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.95rem;">${p.address}</div>
+                                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">Captado por ${getAgent(p.agentId).name}</div>
+                                        </div>
+                                    </div>
+                                    <div class="badge badge-${p.type}">${p.type}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            viewContainer.innerHTML = html;
+            setTimeout(drawChart, 100);
+        }
+
+        function drawChart() {
+            const canvas = document.getElementById('agentChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const cw = canvas.parentElement.clientWidth - 40;
+            const ch = 250;
+            canvas.width = cw;
+            canvas.height = ch;
+
+            const maxComm = Math.max(...agents.map(a => a.commissions));
+            const barWidth = 40;
+            const spacing = (cw - (agents.length * barWidth)) / (agents.length + 1);
+
+            ctx.clearRect(0, 0, cw, ch);
+            
+            agents.forEach((ag, i) => {
+                const height = (ag.commissions / maxComm) * (ch - 40);
+                const x = spacing + i * (barWidth + spacing);
+                const y = ch - height - 20;
+
+                // Bar
+                const grad = ctx.createLinearGradient(0, y, 0, ch-20);
+                grad.addColorStop(0, '#c9a84c');
+                grad.addColorStop(1, '#8a7333');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth, height, [4, 4, 0, 0]);
+                ctx.fill();
+
+                // Text Name
+                ctx.fillStyle = '#8b8b9b';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText(ag.initials, x + barWidth/2, ch);
+
+                // Text Value
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Inter';
+                ctx.fillText((ag.commissions/1000).toFixed(0)+'k', x + barWidth/2, y - 5);
+            });
+        }
+
+        // Render Agentes
+        function renderAgentes() {
+            viewTitle.textContent = "Equipo Comercial";
+            viewSubtitle.textContent = "Rendimiento y métricas de los agentes";
+            
+            let html = `<div class="agents-grid">`;
+            agents.forEach(a => {
+                html += `
+                <div class="card agent-card">
+                    <div class="agent-header">
+                        <div class="agent-avatar" style="background-color: ${a.color}">${a.initials}</div>
+                        <div>
+                            <h3 style="font-size: 1.2rem; color: var(--text-main);">${a.name}</h3>
+                            <div style="color: var(--accent-gold); font-size: 0.9rem; margin-top: 0.2rem;">★ ${a.rating} valoración</div>
+                        </div>
+                    </div>
+                    <div class="agent-stats">
+                        <div class="stat-box">
+                            <text>Pisos Activos</text>
+                            <value>${a.assigned}</value>
+                        </div>
+                        <div class="stat-box">
+                            <text>Comisiones YTD</text>
+                            <value class="text-success">${formatMoney(a.commissions)}</value>
+                        </div>
+                        <div class="stat-box">
+                            <text>Ventas Cerradas</text>
+                            <value>${a.sales}</value>
+                        </div>
+                        <div class="stat-box">
+                            <text>Alquileres Cerrados</text>
+                            <value>${a.rents}</value>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+            viewContainer.innerHTML = html;
+        }
+
+        // Render Propiedades (Kanban)
+        function renderPropiedades() {
+            viewTitle.textContent = "Propiedades (Pipeline)";
+            viewSubtitle.textContent = "Gestión visual del estado de las propiedades";
+
+            let colsHtml = '';
+            propertyStatuses.forEach(status => {
+                const props = properties.filter(p => p.status === status);
+                
+                let cardsHtml = props.map(p => {
+                    const ag = getAgent(p.agentId);
+                    return `
+                    <div class="kanban-card" onclick="openPropertyModal('${p.id}')">
+                        <img src="${p.image}" alt="Render de propiedad" class="kanban-card-img">
+                        <div class="flex-between" style="margin-bottom: 0.5rem;">
+                            <span class="badge badge-${p.type}">${p.type}</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">${p.id}</span>
+                        </div>
+                        <div class="kanban-card-title">${p.address}</div>
+                        <div class="kanban-card-price">${formatMoney(p.price)}${p.type==='alquiler'?'/mes':''}</div>
+                        <div class="kanban-card-meta">
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">${p.size} m²</span>
+                            <div class="avatar-sm" style="background-color: ${ag.color}" title="${ag.name}">${ag.initials}</div>
+                        </div>
+                    </div>
+                    `;
+                }).join('');
+
+                colsHtml += `
+                <div class="kanban-column">
+                    <div class="kanban-col-header">
+                        <h3 class="phase-${status}" style="padding: 0.2rem 0.5rem; border-radius: 4px;">${cap(status)}</h3>
+                        <span class="kanban-count">${props.length}</span>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap: 0.75rem; flex: 1; overflow-y: auto;">
+                        ${cardsHtml}
+                    </div>
+                </div>
+                `;
+            });
+
+            viewContainer.innerHTML = `<div class="kanban-board">${colsHtml}</div>`;
+        }
+
+        function openPropertyModal(id) {
+            const p = getProperty(id);
+            const ag = getAgent(p.agentId);
+            modalTitle.textContent = `Detalle Propiedad: ${p.id}`;
+            
+            modalBody.innerHTML = `
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">${p.address}</h3>
+                    <div class="flex-between">
+                        <span style="font-size: 1.25rem; font-weight: bold; color: var(--accent-gold);">${formatMoney(p.price)}${p.type==='alquiler'?'/mes':''}</span>
+                        <span class="badge badge-${p.type}">${p.type}</span>
+                    </div>
+                </div>
+                <div class="grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 2rem;">
+                    <div class="card" style="padding: 1rem;">
+                        <span style="color:var(--text-muted); font-size:0.8rem;">Superficie</span>
+                        <div style="font-weight: 600;">${p.size} m²</div>
+                    </div>
+                    <div class="card" style="padding: 1rem; display:flex; align-items:center; gap: 1rem;">
+                        <div class="avatar" style="background-color: ${ag.color}; width: 36px; height: 36px; border-radius: 50%; display:flex; align-items:center; justify-content:center; font-weight:bold; color:white;">${ag.initials}</div>
+                        <div>
+                            <div style="font-size:0.8rem; color:var(--text-muted);">Agente Asignado</div>
+                            <div style="font-weight: 600;">${ag.name}</div>
+                        </div>
+                    </div>
+                </div>
+                <h4>Historial de Fases</h4>
+                <ul style="margin-top: 1rem; color: var(--text-muted); font-size: 0.9rem; padding-left: 1.2rem; line-height: 1.8;">
+                    ${p.history.length ? p.history.map(h => `<li>${h}</li>`).join('') : '<li>No hay historial disponible.</li>'}
+                </ul>
+            `;
+            modal.classList.add('active');
+        }
+
+        // Render Operaciones
+        function renderOperaciones() {
+            viewTitle.textContent = "Operaciones Cerradas";
+            viewSubtitle.textContent = "Registro histórico de firmas e ingresos";
+
+            let trs = operations.map(op => {
+                const prop = getProperty(op.propertyId) || { address: 'Propiedad ' + op.propertyId };
+                const ag = getAgent(op.agentId);
+                const notam = op.notaryId ? thirdParties.notaries.find(n => n.id === op.notaryId).name : '-';
+                
+                return `
+                <tr>
+                    <td>${op.id}</td>
+                    <td style="font-weight: 500;">${prop.address}</td>
+                    <td>${ag.name}</td>
+                    <td class="text-gold" style="font-weight: 600;">${formatMoney(op.price)}</td>
+                    <td class="text-success">+${formatMoney(op.commAgency)}</td>
+                    <td>${notam}</td>
+                    <td>${op.date}</td>
+                </tr>
+                `;
+            }).join('');
+
+            viewContainer.innerHTML = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Propiedad</th>
+                                <th>Agente</th>
+                                <th>Precio Final</th>
+                                <th>Comisión Agencia</th>
+                                <th>Notario</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>${trs}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Render Finanzas
+        function renderFinanzas() {
+            viewTitle.textContent = "Finanzas";
+            viewSubtitle.textContent = "Resumen de ingresos, gastos y beneficio (YTD)";
+
+            const totalIn = operations.reduce((sum, op) => sum + op.commAgency, 0);
+            const totalOutNotary = thirdParties.notaries.reduce((sum, n) => sum + n.fees, 0);
+            const totalOutExpert = thirdParties.experts.reduce((sum, e) => sum + e.fees, 0);
+            const totalOut = totalOutNotary + totalOutExpert;
+            const netProfit = totalIn - totalOut;
+
+            viewContainer.innerHTML = `
+                <div class="grid grid-kpis">
+                    <div class="card" style="border-top: 3px solid var(--success);">
+                        <div class="kpi-title">Ingresos Brutos Agencia</div>
+                        <div class="kpi-value text-success">${formatMoney(totalIn)}</div>
+                    </div>
+                    <div class="card" style="border-top: 3px solid var(--danger);">
+                        <div class="kpi-title">Gastos Terceros (Notarías/Peritos)</div>
+                        <div class="kpi-value" style="color: var(--danger);">${formatMoney(totalOut)}</div>
+                    </div>
+                    <div class="card" style="border-top: 3px solid var(--accent-gold);">
+                        <div class="kpi-title">Beneficio Neto</div>
+                        <div class="kpi-value text-gold">${formatMoney(netProfit)}</div>
+                    </div>
+                </div>
+
+                <div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1.5rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Desglose Gastos</h3>
+                        <div class="flex-between" style="padding: 0.75rem 0;">
+                            <span>Notarías</span>
+                            <span style="font-weight: 600; color: var(--danger)">${formatMoney(totalOutNotary)}</span>
+                        </div>
+                        <div class="flex-between" style="padding: 0.75rem 0;">
+                            <span>Peritajes y Arquitectos</span>
+                            <span style="font-weight: 600; color: var(--danger)">${formatMoney(totalOutExpert)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Terceros
+        function renderTerceros() {
+            viewTitle.textContent = "Notarios y Peritos";
+            viewSubtitle.textContent = "Colaboradores externos y honorarios facturados";
+
+            const renderTable = (data, title) => {
+                const rows = data.map(item => `
+                    <tr>
+                        <td style="font-weight: 500;">${item.name}</td>
+                        <td>${item.ops} operaciones</td>
+                        <td class="text-gold">${formatMoney(item.fees)}</td>
+                    </tr>
+                `).join('');
+                
+                return `
+                    <div class="card table-container" style="padding: 0;">
+                        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                            <h3 style="font-size: 1.1rem;">${title}</h3>
+                        </div>
+                        <table>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>
+                `;
+            };
+
+            viewContainer.innerHTML = `
+                <div class="grid" style="grid-template-columns: 1fr 1fr;">
+                    ${renderTable(thirdParties.notaries, "Notarías de Confianza")}
+                    ${renderTable(thirdParties.experts, "Peritos y Arquitectos")}
+                </div>
+            `;
+        }
+
+        // Navegación
+        const viewsMap = {
+            'dashboard': renderDashboard,
+            'agentes': renderAgentes,
+            'propiedades': renderPropiedades,
+            'operaciones': renderOperaciones,
+            'finanzas': renderFinanzas,
+            'terceros': renderTerceros
+        };
+
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                // UI switch
+                document.querySelector('.nav-item.active').classList.remove('active');
+                item.classList.add('active');
+
+                // Fade out
+                viewContainer.classList.remove('show');
+                
+                // Switch content and fade in
+                setTimeout(() => {
+                    const view = item.getAttribute('data-view');
+                    if(viewsMap[view]) viewsMap[view]();
+                    viewContainer.classList.add('show');
+                }, 300); // match CSS transition duration
+            });
+        });
+
+        // Init
+        renderDashboard();
+
+        // Responsive Sidebar Adjustments (Simplificado para vanilla js sin dependencias)
+        window.addEventListener('resize', () => {
+            if(document.querySelector('.nav-item.active').getAttribute('data-view') === 'dashboard') {
+                drawChart();
+            }
+        });
+    </script>
+</body>
+</html>
