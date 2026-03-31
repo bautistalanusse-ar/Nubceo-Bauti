@@ -1,0 +1,3307 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Nubceo · Sales Hub</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --sur: #fff;
+      --sur2: #f8f9fb;
+      --sur3: #eef0f4;
+      --bdr: #e4e7ec;
+      --bdr2: #d0d5dd;
+      --tx: #0a0d14;
+      --tx2: #3d4451;
+      --mt: #6c7585;
+      --mt2: #9aa1b1;
+      --bl: #1a56db;
+      --bl-l: #eff4ff;
+      --bl-m: #c7d7fd;
+      --gn: #027a48;
+      --gn-l: #ecfdf3;
+      --gn-m: #a6f4c5;
+      --rd: #b42318;
+      --rd-l: #fef3f2;
+      --rd-m: #fecdca;
+      --yw: #b54708;
+      --yw-l: #fffaeb;
+      --yw-m: #fedf89;
+      --pu: #5925dc;
+      --pu-l: #f4f3ff;
+      --or: #c4320a;
+      --or-l: #fff4ed;
+      --sw: 240px;
+      --hh: 60px;
+      --r: 12px;
+      --rs: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html,
+    body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--tx)
+    }
+
+    body {
+      display: flex;
+      overflow: hidden
+    }
+
+    /* SIDEBAR */
+    #sb {
+      width: var(--sw);
+      height: 100vh;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0
+    }
+
+    .sb-logo {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .07);
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .sb-mk {
+      width: 32px;
+      height: 32px;
+      background: var(--bl);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0
+    }
+
+    .sb-tx h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff
+    }
+
+    .sb-tx p {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .3);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .sb-sec {
+      font-size: 9px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, .22);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 13px 20px 5px
+    }
+
+    .sb-lk {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, .48);
+      transition: all .15s;
+      border-left: 2px solid transparent;
+      user-select: none
+    }
+
+    .sb-lk svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0
+    }
+
+    .sb-lk:hover {
+      background: rgba(255, 255, 255, .05);
+      color: rgba(255, 255, 255, .85)
+    }
+
+    .sb-lk.on {
+      background: rgba(26, 86, 219, .2);
+      border-left-color: #3b82f6;
+      color: #fff
+    }
+
+    .sb-bot {
+      margin-top: auto;
+      padding: 12px 14px;
+      border-top: 1px solid rgba(255, 255, 255, .07)
+    }
+
+    .fx-bar {
+      background: rgba(255, 255, 255, .05);
+      border: 1px solid rgba(255, 255, 255, .08);
+      border-radius: var(--rs);
+      padding: 7px 10px;
+      margin-bottom: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      color: rgba(255, 255, 255, .32);
+      display: flex;
+      gap: 8px
+    }
+
+    .fxv {
+      color: #34d399;
+      font-weight: 500
+    }
+
+    .btn-r {
+      width: 100%;
+      padding: 9px;
+      background: #1a56db;
+      color: #fff;
+      border: none;
+      border-radius: var(--rs);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      transition: background .15s
+    }
+
+    .btn-r:hover {
+      background: #1e40af
+    }
+
+    .btn-r:disabled {
+      background: rgba(255, 255, 255, .08);
+      color: rgba(255, 255, 255, .25);
+      cursor: not-allowed
+    }
+
+    .btn-s {
+      width: 100%;
+      margin-top: 5px;
+      padding: 7px;
+      background: transparent;
+      color: rgba(255, 255, 255, .3);
+      border: 1px solid rgba(255, 255, 255, .07);
+      border-radius: var(--rs);
+      cursor: pointer;
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+      transition: all .15s
+    }
+
+    .btn-s:hover {
+      color: rgba(255, 255, 255, .65)
+    }
+
+    #sb-ts {
+      font-size: 9px;
+      color: rgba(255, 255, 255, .18);
+      text-align: center;
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    /* MAIN */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0
+    }
+
+    #top {
+      height: var(--hh);
+      background: var(--sur);
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      flex-shrink: 0
+    }
+
+    .top-l h2 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -.3px
+    }
+
+    .top-l p {
+      font-size: 11px;
+      color: var(--mt);
+      margin-top: 1px
+    }
+
+    .top-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 11px;
+      background: var(--sur2);
+      border: 1px solid var(--bdr);
+      border-radius: 20px;
+      font-size: 10px;
+      color: var(--mt);
+      font-weight: 500
+    }
+
+    .top-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 5px rgba(34, 197, 94, .5)
+    }
+
+    #cnt {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px
+    }
+
+    .page {
+      display: none
+    }
+
+    .page.on {
+      display: block
+    }
+
+    /* CONFIG */
+    #cfg {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 13, 20, .6);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px)
+    }
+
+    #cfg.show {
+      display: flex
+    }
+
+    .cfg-box {
+      background: var(--sur);
+      border-radius: 18px;
+      padding: 36px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .12);
+      text-align: center
+    }
+
+    .cfg-box h2 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 5px
+    }
+
+    .cfg-box p {
+      color: var(--mt);
+      font-size: 12px;
+      margin-bottom: 20px;
+      line-height: 1.6
+    }
+
+    .cfg-box input {
+      width: 100%;
+      padding: 11px 13px;
+      background: var(--sur2);
+      border: 1.5px solid var(--bdr);
+      border-radius: var(--rs);
+      color: var(--tx);
+      font-size: 12px;
+      margin-bottom: 10px;
+      outline: none;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .cfg-box input:focus {
+      border-color: var(--bl)
+    }
+
+    .cfg-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--bl);
+      color: #fff;
+      border: none;
+      border-radius: var(--rs);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif
+    }
+
+    #cfg-er {
+      color: var(--rd);
+      font-size: 10px;
+      margin-bottom: 8px;
+      display: none
+    }
+
+    /* LOADING */
+    #ld {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(240, 242, 245, .88);
+      z-index: 998;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(2px)
+    }
+
+    #ld.show {
+      display: flex
+    }
+
+    .spin {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--bdr2);
+      border-top-color: var(--bl);
+      border-radius: 50%;
+      animation: spin .7s linear infinite
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    #ld-tx {
+      color: var(--mt);
+      font-size: 12px;
+      font-weight: 500
+    }
+
+    /* KPI */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 11px;
+      margin-bottom: 20px
+    }
+
+    .kpi {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 15px 17px;
+      transition: box-shadow .2s
+    }
+
+    .kpi:hover {
+      box-shadow: 0 4px 14px rgba(0, 0, 0, .06)
+    }
+
+    .kpi-ico {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 9px
+    }
+
+    .i-b {
+      background: var(--bl-l)
+    }
+
+    .i-g {
+      background: var(--gn-l)
+    }
+
+    .i-r {
+      background: var(--rd-l)
+    }
+
+    .i-y {
+      background: var(--yw-l)
+    }
+
+    .i-p {
+      background: var(--pu-l)
+    }
+
+    .i-o {
+      background: var(--or-l)
+    }
+
+    .kpi-lb {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--mt);
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      margin-bottom: 5px
+    }
+
+    .kpi-vl {
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1
+    }
+
+    .kpi-vl.md {
+      font-size: 15px;
+      letter-spacing: -.3px;
+      font-weight: 700
+    }
+
+    .kpi-sb {
+      font-size: 10px;
+      color: var(--mt);
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    /* SEC HEADER */
+    .sh {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 11px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--bdr)
+    }
+
+    .sh-t {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 7px;
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .cb {
+      background: var(--bl-l);
+      color: var(--bl)
+    }
+
+    .cg {
+      background: var(--gn-l);
+      color: var(--gn)
+    }
+
+    .cr {
+      background: var(--rd-l);
+      color: var(--rd)
+    }
+
+    .cy {
+      background: var(--yw-l);
+      color: var(--yw)
+    }
+
+    .cgr {
+      background: var(--sur3);
+      color: var(--mt)
+    }
+
+    /* CARD */
+    .card {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 17px;
+      margin-bottom: 16px
+    }
+
+    /* TABLE */
+    .tw {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      overflow: hidden;
+      margin-bottom: 16px
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px
+    }
+
+    th {
+      padding: 8px 12px;
+      text-align: left;
+      color: var(--mt);
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      border-bottom: 1px solid var(--bdr);
+      background: var(--sur2)
+    }
+
+    td {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--bdr);
+      vertical-align: middle;
+      color: var(--tx2)
+    }
+
+    tr:last-child td {
+      border-bottom: none
+    }
+
+    tbody tr:hover td {
+      background: var(--sur2)
+    }
+
+    .tb {
+      font-weight: 700;
+      color: var(--tx)
+    }
+
+    .tm {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px
+    }
+
+    /* TAGS */
+    .tag {
+      display: inline-flex;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 9px;
+      font-weight: 700;
+      white-space: nowrap
+    }
+
+    .tr {
+      background: var(--rd-l);
+      color: var(--rd)
+    }
+
+    .ty {
+      background: var(--yw-l);
+      color: var(--yw)
+    }
+
+    .tg {
+      background: var(--gn-l);
+      color: var(--gn)
+    }
+
+    .tb2 {
+      background: var(--bl-l);
+      color: var(--bl)
+    }
+
+    .tgr {
+      background: var(--sur3);
+      color: var(--mt)
+    }
+
+    /* PIPE PILL */
+    .pp {
+      display: inline-flex;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 9px;
+      font-weight: 700
+    }
+
+    .p-arg {
+      background: #eff6ff;
+      color: #1d4ed8
+    }
+
+    .p-ury {
+      background: #f0fdf4;
+      color: #15803d
+    }
+
+    .p-par {
+      background: #fffbeb;
+      color: #b45309
+    }
+
+    .p-dev {
+      background: var(--pu-l);
+      color: var(--pu)
+    }
+
+    .p-tri {
+      background: var(--sur3);
+      color: var(--mt)
+    }
+
+    /* KANBAN */
+    .kb-f {
+      display: flex;
+      gap: 7px;
+      margin-bottom: 13px;
+      flex-wrap: wrap
+    }
+
+    .kb-btn {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--bdr);
+      background: var(--sur);
+      color: var(--mt);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      transition: all .15s;
+      font-family: 'Inter', sans-serif
+    }
+
+    .kb-btn:hover,
+    .kb-btn.on {
+      background: var(--bl);
+      color: #fff;
+      border-color: var(--bl)
+    }
+
+    .kb-board {
+      display: flex;
+      gap: 11px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      min-height: 400px
+    }
+
+    .kb-col {
+      min-width: 215px;
+      max-width: 235px;
+      background: var(--sur2);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column
+    }
+
+    .kb-ch {
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--bdr)
+    }
+
+    .kb-cn {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .4px
+    }
+
+    .kb-cm {
+      font-size: 9px;
+      color: var(--mt);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: right
+    }
+
+    .kb-cards {
+      padding: 7px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 500px;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .kbc {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--rs);
+      padding: 10px;
+      transition: box-shadow .15s
+    }
+
+    .kbc:hover {
+      box-shadow: 0 3px 10px rgba(0, 0, 0, .06)
+    }
+
+    .kbc.ov {
+      border-left: 3px solid var(--rd)
+    }
+
+    .kbc.hot {
+      border-left: 3px solid #f59e0b
+    }
+
+    .kbc-tp {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 4px;
+      margin-bottom: 3px
+    }
+
+    .kbc-ti {
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.3
+    }
+
+    .kbc-or {
+      font-size: 10px;
+      color: var(--mt);
+      margin-bottom: 7px
+    }
+
+    .kbc-ft {
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .kbc-vl {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    .kbc-dt {
+      font-size: 9px
+    }
+
+    .kbc-bt {
+      font-size: 9px;
+      color: var(--mt);
+      margin-top: 5px;
+      border-top: 1px solid var(--bdr);
+      padding-top: 5px;
+      display: flex;
+      justify-content: space-between
+    }
+
+    /* FILTERS */
+    .fr {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 13px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    .fr label {
+      font-size: 10px;
+      color: var(--mt);
+      font-weight: 600
+    }
+
+    .fr select,
+    .fr input {
+      padding: 6px 9px;
+      background: var(--sur);
+      border: 1.5px solid var(--bdr);
+      border-radius: var(--rs);
+      color: var(--tx);
+      font-size: 11px;
+      outline: none;
+      font-family: 'Inter', sans-serif
+    }
+
+    .fr select:focus,
+    .fr input:focus {
+      border-color: var(--bl)
+    }
+
+    .ptabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 16px
+    }
+
+    .ptab {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1.5px solid var(--bdr);
+      background: var(--sur);
+      color: var(--mt);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      transition: all .15s
+    }
+
+    .ptab.on,
+    .ptab:hover {
+      background: var(--bl);
+      color: #fff;
+      border-color: var(--bl)
+    }
+
+    /* ACTIVITIES */
+    .act-g {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 11px;
+      margin-bottom: 16px
+    }
+
+    .act-c {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 14px
+    }
+
+    .act-h {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px
+    }
+
+    .act-n {
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .sem {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%
+    }
+
+    .s-g {
+      background: #22c55e;
+      box-shadow: 0 0 7px rgba(34, 197, 94, .4)
+    }
+
+    .s-y {
+      background: #f59e0b;
+      box-shadow: 0 0 7px rgba(245, 158, 11, .4)
+    }
+
+    .s-r {
+      background: #ef4444;
+      box-shadow: 0 0 7px rgba(239, 68, 68, .4)
+    }
+
+    .act-r {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--bdr)
+    }
+
+    .act-r:last-child {
+      border-bottom: none
+    }
+
+    .act-lb {
+      color: var(--mt)
+    }
+
+    .act-vl {
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    /* FORECAST */
+    .fc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 13px;
+      margin-bottom: 16px
+    }
+
+    .fc-card {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      overflow: hidden
+    }
+
+    .fc-hd {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+
+    .fc-ti {
+      font-size: 12px;
+      font-weight: 700
+    }
+
+    .fc-body {
+      padding: 10px 13px
+    }
+
+    .fc-r {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--bdr);
+      font-size: 11px
+    }
+
+    .fc-r:last-child {
+      border-bottom: none
+    }
+
+    .fc-vn {
+      color: var(--mt);
+      font-size: 10px
+    }
+
+    .fc-ns {
+      display: flex;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px
+    }
+
+    .fc-ft {
+      padding: 10px 13px;
+      background: var(--sur2);
+      border-top: 1px solid var(--bdr);
+      display: flex;
+      justify-content: space-between;
+      align-items: center
+    }
+
+    .fc-fl {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--mt);
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+
+    .fc-fv {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace
+    }
+
+    /* ── RANKING ── */
+    .rk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px
+    }
+
+    .rk-card {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 16px;
+      position: relative;
+      overflow: hidden
+    }
+
+    .rk-card.winner {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, .15)
+    }
+
+    .rk-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .rk-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+      flex-shrink: 0
+    }
+
+    .rk-info {
+      flex: 1;
+      min-width: 0
+    }
+
+    .rk-name {
+      font-size: 14px;
+      font-weight: 700
+    }
+
+    .rk-pos {
+      font-size: 10px;
+      color: var(--mt);
+      margin-top: 1px
+    }
+
+    .rk-rev {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: right
+    }
+
+    .rk-obj {
+      font-size: 9px;
+      color: var(--mt);
+      text-align: right;
+      margin-top: 1px
+    }
+
+    /* Progress bar */
+    .pb-wrap {
+      margin-bottom: 8px
+    }
+
+    .pb-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 9px;
+      color: var(--mt);
+      margin-bottom: 4px
+    }
+
+    .pb-track {
+      height: 8px;
+      background: var(--sur3);
+      border-radius: 4px;
+      overflow: hidden
+    }
+
+    .pb-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .4s ease;
+      min-width: 2px
+    }
+
+    .pb-over {
+      background: linear-gradient(90deg, #027a48, #34d399)
+    }
+
+    .pb-near {
+      background: linear-gradient(90deg, #1a56db, #60a5fa)
+    }
+
+    .pb-low {
+      background: linear-gradient(90deg, #ef4444, #f87171)
+    }
+
+    /* Mini deals in ranking */
+    .rk-deals {
+      margin-top: 10px;
+      border-top: 1px solid var(--bdr);
+      padding-top: 8px
+    }
+
+    .rk-deal-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 0;
+      font-size: 10px
+    }
+
+    .rk-deal-name {
+      color: var(--tx2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 160px
+    }
+
+    .rk-deal-val {
+      font-weight: 700;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+      flex-shrink: 0
+    }
+
+    .rk-more {
+      font-size: 9px;
+      color: var(--mt);
+      margin-top: 3px
+    }
+
+    /* Ranking summary table */
+    .rk-summary {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      overflow: hidden;
+      margin-bottom: 16px
+    }
+
+    .rk-summary-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--bdr);
+      gap: 12px;
+      transition: background .15s
+    }
+
+    .rk-summary-row:hover {
+      background: var(--sur2)
+    }
+
+    .rk-summary-row:last-child {
+      border-bottom: none
+    }
+
+    .rk-pos-num {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--mt2);
+      width: 28px;
+      flex-shrink: 0;
+      text-align: center
+    }
+
+    .rk-pos-num.gold {
+      color: #f59e0b
+    }
+
+    .rk-pos-num.silver {
+      color: #94a3b8
+    }
+
+    .rk-pos-num.bronze {
+      color: #b45309
+    }
+
+    .rk-s-name {
+      flex: 1;
+      font-size: 13px;
+      font-weight: 600
+    }
+
+    .rk-s-pipe {
+      font-size: 10px;
+      color: var(--mt);
+      font-family: 'JetBrains Mono', monospace;
+      width: 60px;
+      text-align: right
+    }
+
+    .rk-s-won {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace;
+      width: 100px;
+      text-align: right
+    }
+
+    .rk-s-pct {
+      font-size: 10px;
+      color: var(--mt);
+      width: 45px;
+      text-align: right
+    }
+
+    .rk-s-bar {
+      width: 120px;
+      flex-shrink: 0
+    }
+
+    .rk-s-btrack {
+      height: 6px;
+      background: var(--sur3);
+      border-radius: 3px;
+      overflow: hidden
+    }
+
+    .rk-s-bfill {
+      height: 100%;
+      border-radius: 3px
+    }
+
+    /* MISC */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 13px;
+      margin-bottom: 16px
+    }
+
+    .empty {
+      text-align: center;
+      padding: 36px;
+      color: var(--mt);
+      font-size: 12px
+    }
+
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bdr2);
+      border-radius: 4px
+    }
+
+    /* MOBILE FIRST OVERRIDES */
+    #bottom-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      height: 60px;
+      background: #0f172a;
+      flex-shrink: 0;
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      z-index: 900;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .bn-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: rgba(255, 255, 255, 0.48);
+      font-size: 9px;
+      font-weight: 500;
+      cursor: pointer;
+      position: relative;
+      width: 100%;
+      padding: 8px 0;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .bn-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 1.5;
+    }
+
+    .bn-item.on {
+      color: #3b82f6;
+    }
+
+    .bn-item.on::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      width: 4px;
+      height: 4px;
+      background: #3b82f6;
+      border-radius: 50%;
+    }
+
+    .bn-item span {
+      display: block;
+    }
+
+    #mob-header {
+      height: 52px;
+      background: var(--sur);
+      border-bottom: 1px solid var(--bdr);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 900;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .mh-l {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mh-r {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #sb,
+    #top {
+      display: none;
+    }
+
+    body {
+      display: block;
+      overflow: hidden;
+    }
+
+    #main {
+      height: 100vh;
+      padding-top: 52px;
+      padding-bottom: 60px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #cnt {
+      padding: 12px;
+      overflow-y: visible;
+      flex: 1;
+    }
+
+    .kpi-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+      margin-bottom: 12px;
+    }
+
+    .kpi {
+      padding: 12px;
+    }
+
+    .kpi-vl {
+      font-size: 18px;
+    }
+
+    .kpi-lb {
+      font-size: 9px;
+    }
+
+    .sh {
+      font-size: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 9px;
+    }
+
+    .sh-t {
+      font-size: 12px;
+    }
+
+    .card {
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .tw {
+      margin-bottom: 12px;
+    }
+
+    table {
+      font-size: 11px;
+    }
+
+    th,
+    td {
+      padding: 7px 10px;
+    }
+
+    .col-hide {
+      display: none;
+    }
+
+    .two-col {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .dash-h-scroll {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    .dash-h-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .dash-h-scroll>div {
+      min-width: 260px;
+      flex-shrink: 0;
+    }
+
+    .fc-grid {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    .fc-card {
+      min-width: 260px;
+      flex-shrink: 0;
+    }
+
+    #kpi-fc {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+
+    #kpi-fc .kpi {
+      min-width: 150px;
+      flex-shrink: 0;
+    }
+
+    .kb-f {
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      gap: 7px;
+      scrollbar-width: none;
+    }
+
+    .kb-col {
+      min-width: 200px;
+      max-width: 200px;
+    }
+
+    .kbc {
+      min-width: 180px;
+    }
+
+    .rk-summary-row {
+      padding: 10px 12px;
+      flex-wrap: wrap;
+    }
+
+    .rk-s-bar {
+      width: 80px;
+    }
+
+    .rk-s-pipe {
+      font-size: 9px;
+    }
+
+    .rk-s-pipe.mob {
+      display: block;
+      margin-top: 2px;
+      color: var(--mt);
+    }
+
+    .rk-s-pipe.desk {
+      display: none;
+    }
+
+    .rk-s-name {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      margin-bottom: 6px;
+    }
+
+    .rk-pos-num {
+      margin-bottom: 6px;
+    }
+
+    .rk-s-won {
+      min-width: 80px;
+      text-align: left;
+    }
+
+    .rk-grid {
+      grid-template-columns: 1fr;
+    }
+
+    /* DESKTOP MEDIA QUERY */
+    @media (min-width: 769px) {
+      body {
+        display: flex;
+        overflow: hidden;
+      }
+
+      #bottom-nav,
+      #mob-header {
+        display: none !important;
+      }
+
+      #sb {
+        display: flex;
+        width: var(--sw);
+        flex-shrink: 0;
+      }
+
+      #top {
+        display: flex;
+        height: var(--hh);
+      }
+
+      #main {
+        padding-top: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+        flex: 1;
+      }
+
+      #cnt {
+        padding: 20px 24px;
+        overflow-y: auto;
+      }
+
+      .kpi-grid {
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        margin-bottom: 20px;
+        gap: 11px;
+      }
+
+      .kpi {
+        padding: 15px 17px;
+      }
+
+      .kpi-vl {
+        font-size: 21px;
+      }
+
+      .sh {
+        font-size: 13px;
+        margin-bottom: 11px;
+      }
+
+      .card {
+        padding: 17px;
+        margin-bottom: 16px;
+      }
+
+      table {
+        font-size: 11px;
+      }
+
+      th,
+      td {
+        padding: 8px 12px;
+      }
+
+      .col-hide {
+        display: table-cell;
+      }
+
+      .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 13px;
+        margin-bottom: 16px;
+      }
+
+      .dash-h-scroll {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        overflow-x: visible;
+        gap: 11px;
+        margin-bottom: 14px;
+      }
+
+      .dash-h-scroll>div {
+        min-width: 0;
+      }
+
+      .fc-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        overflow-x: visible;
+        gap: 13px;
+        margin-bottom: 16px;
+      }
+
+      .fc-card {
+        min-width: 0;
+      }
+
+      #kpi-fc {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        overflow-x: visible;
+        gap: 13px;
+        margin-bottom: 16px;
+      }
+
+      #kpi-fc .kpi {
+        min-width: 0;
+      }
+
+      .kb-f {
+        flex-wrap: wrap;
+        overflow-x: visible;
+        margin-bottom: 13px;
+        gap: 7px;
+      }
+
+      .kb-col {
+        min-width: 215px;
+        max-width: 235px;
+      }
+
+      .kbc {
+        min-width: 0;
+      }
+
+      .rk-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+      }
+
+      .rk-summary-row {
+        padding: 10px 16px;
+        flex-wrap: nowrap;
+      }
+
+      .rk-s-bar {
+        width: 120px;
+      }
+
+      .rk-s-pipe {
+        width: 60px;
+        text-align: right;
+      }
+
+      .rk-s-pipe.desk {
+        display: block;
+      }
+
+      .rk-s-pipe.mob {
+        display: none;
+      }
+
+      .rk-s-name {
+        flex: 1;
+        display: block;
+        margin-bottom: 0;
+        width: auto;
+      }
+
+      .rk-pos-num {
+        margin-bottom: 0;
+      }
+
+      .rk-s-won {
+        text-align: right;
+        width: 100px;
+        min-width: 0;
+      }
+    }
+
+    @media (min-width: 769px) and (max-width: 960px) {
+
+      .two-col,
+      .fc-grid,
+      .rk-grid {
+        grid-template-columns: 1fr
+      }
+
+      .dash-h-scroll {
+        grid-template-columns: 1fr;
+      }
+    }
+
+
+    .kpi {
+      position: relative;
+      border-top: 3px solid #1a56db;
+      transition: all 0.2s ease;
+    }
+
+    .kpi:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+    }
+
+    .kpi-vl {
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.5px;
+    }
+
+    .kpi-trend {
+      font-size: 10px;
+      color: var(--mt);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      font-weight: 500;
+    }
+
+    table tbody tr:nth-child(even) td {
+      background: #fafafa;
+    }
+
+    table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th.ar,
+    td.ar {
+      text-align: right;
+    }
+
+    td.ar {
+      font-weight: 700;
+      color: var(--gn);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .ava-w {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ava {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      letter-spacing: -0.2px;
+    }
+
+    .pb-fill {
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .rk-summary-row.rk-win {
+      background: #ecfdf3 !important;
+    }
+
+    .rk-summary-row.rk-near {
+      background: #eff4ff !important;
+    }
+
+    .rk-summary-row.rk-low {
+      background: #fef3f2 !important;
+    }
+
+    .fc-r.fc-noact {
+      background: #fef3f2 !important;
+    }
+
+    .fc-r.fc-over {
+      background: #fffaeb !important;
+    }
+
+    .empty-st {
+      padding: 32px 16px;
+      text-align: center;
+    }
+
+    .empty-ic {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+
+    .empty-ti {
+      font-weight: 600;
+      color: #3d4451;
+      font-size: 12px;
+    }
+
+    .empty-su {
+      color: #9aa1b1;
+      font-size: 10px;
+      margin-top: 4px;
+    }
+
+    #ld {
+      backdrop-filter: blur(8px) !important;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 1
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: .7
+      }
+    }
+
+    @keyframes shimm {
+      0% {
+        left: -100%
+      }
+
+      100% {
+        left: 200%
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="cfg" class="show">
+    <div class="cfg-box">
+      <div style="font-size:32px;margin-bottom:10px">⚡</div>
+      <h2>Nubceo Sales Hub</h2>
+      <p>Ingresá tu Pipedrive API Token.<br>Solo se guarda en tu browser.</p>
+      <input type="password" id="tok" placeholder="Pipedrive API Token" autocomplete="off">
+      <div id="cfg-er">Token inválido o sin conexión.</div>
+      <button class="cfg-btn" onclick="saveToken()">Conectar →</button>
+    </div>
+  </div>
+
+  <div id="ld">
+    <div style="font-size:48px;color:#1a56db;animation:pulse 1.5s infinite;font-weight:800;margin-bottom:16px">N</div>
+    <p id="ld-tx" style="font-size:18px;font-weight:700;color:#0a0d14;margin-bottom:12px">Cargando…</p>
+    <div style="position:relative;width:200px;height:4px;background:#e4e7ec;border-radius:2px;overflow:hidden">
+      <div style="position:absolute;width:50%;height:100%;background:#1a56db;animation:shimm 1s infinite linear"></div>
+    </div>
+  </div>
+
+  <nav id="sb">
+    <div class="sb-logo">
+      <div class="sb-mk">N</div>
+      <div class="sb-tx">
+        <h1>Nubceo</h1>
+        <p>Sales Hub</p>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto">
+      <div class="sb-sec">Principal</div>
+      <div class="sb-lk on" data-p="dashboard" onclick="go('dashboard',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1.5" stroke-width="2" />
+          <rect x="14" y="3" width="7" height="7" rx="1.5" stroke-width="2" />
+          <rect x="3" y="14" width="7" height="7" rx="1.5" stroke-width="2" />
+          <rect x="14" y="14" width="7" height="7" rx="1.5" stroke-width="2" />
+        </svg>
+        Dashboard
+      </div>
+      <div class="sb-lk" data-p="ranking" onclick="go('ranking',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+        Ranking Vendedores
+      </div>
+      <div class="sb-lk" data-p="forecast" onclick="go('forecast',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        Forecast Mes
+      </div>
+      <div class="sb-lk" data-p="dev" onclick="go('dev',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        Desarrollo de Cuentas
+      </div>
+      <div class="sb-lk" data-p="kanban" onclick="go('kanban',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+        </svg>
+        Pipeline Kanban
+      </div>
+      <div class="sb-sec">Análisis</div>
+      <div class="sb-lk" data-p="won" onclick="go('won',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        Deals Ganados
+      </div>
+
+    </div>
+    <div class="sb-bot">
+      <div class="fx-bar" id="fx-bar">💱 Cargando TC…</div>
+      <button class="btn-r" id="ref-btn" onclick="loadAll()">↻ Actualizar</button>
+      <button class="btn-s" onclick="openCfg()">⚙ Cambiar token</button>
+      <div id="sb-ts"></div>
+    </div>
+  </nav>
+
+  <div id="main">
+    <header id="mob-header">
+      <div class="mh-l">
+        <div class="sb-mk" style="width:24px;height:24px;font-size:12px;border-radius:6px">N</div>
+        <span style="font-weight:800;font-size:15px;color:var(--tx);letter-spacing:-0.4px">Nubceo</span>
+      </div>
+      <div class="mh-r">
+        <div id="mob-fx" style="font-size:9px;font-family:'JetBrains Mono',monospace;color:var(--mt);font-weight:600">
+        </div>
+        <button class="btn-r"
+          style="padding:4px 6px;width:auto;font-size:12px;font-weight:700;display:flex;align-items:center;background:transparent;color:var(--mt);border:1px solid var(--bdr)"
+          onclick="loadAll()">↻</button>
+      </div>
+    </header>
+
+    <div id="top">
+      <div class="top-l">
+        <h2 id="top-h">Dashboard General</h2>
+        <p id="top-p">Pipeline activo — ARG · URY · PAR</p>
+      </div>
+      <div class="top-chip">
+        <div class="top-dot"></div><span id="top-st">Conectado</span>
+      </div>
+    </div>
+    <div id="cnt">
+
+      <!-- DASHBOARD -->
+      <div class="page on" id="page-dashboard">
+        <div class="kpi-grid" id="kpi-d"></div>
+        <div class="two-col">
+          <div class="card">
+            <div class="sh">
+              <div class="sh-t">📈 Revenue por Vendedor <span class="chip cb">Este mes</span></div>
+            </div>
+            <canvas id="ch-r" style="max-height:200px"></canvas>
+          </div>
+          <div class="card">
+            <div class="sh">
+              <div class="sh-t">🌎 Pipeline por Funnel</div>
+            </div>
+            <canvas id="ch-f" style="max-height:200px"></canvas>
+          </div>
+        </div>
+        <div class="sh">
+          <div class="sh-t">🔥 Deals Calientes <span class="chip cy">≤7 días</span></div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Deal</th>
+                <th class="col-hide">Organización</th>
+                <th>Vendedor</th>
+                <th class="col-hide">Funnel</th>
+                <th class="ar">Valor ARS</th>
+                <th>Cierre</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-hot"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- RANKING -->
+      <div class="page" id="page-ranking">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:3px">🎯 Objetivo mensual: <span
+                style="color:var(--gn);font-family:'JetBrains Mono',monospace" id="obj-label">$6.000.000 ARS por
+                vendedor</span></div>
+            <div style="font-size:11px;color:var(--mt)" id="obj-period"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:10px;color:var(--mt)">Objetivo $:</label>
+            <input type="number" id="obj-input" value="6000000"
+              style="padding:5px 9px;border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:11px;width:120px;font-family:'JetBrains Mono',monospace;outline:none;background:var(--sur)"
+              onchange="renderRanking()">
+          </div>
+        </div>
+        <!-- Tabla resumen -->
+        <div class="sh">
+          <div class="sh-t">📊 Tabla de Posiciones</div>
+        </div>
+        <div class="rk-summary" id="rk-table"></div>
+        <!-- Cards detalladas -->
+        <div class="sh" style="margin-top:16px">
+          <div class="sh-t">📋 Detalle por Vendedor</div>
+        </div>
+        <div class="rk-grid" id="rk-cards"></div>
+      </div>
+
+      <!-- FORECAST -->
+      <div class="page" id="page-forecast">
+        <div class="ptabs" id="fc-tabs">
+          <button class="ptab on" onclick="setFcP('month',this)">Este mes</button>
+          <button class="ptab" onclick="setFcP('next',this)">Próximo mes</button>
+          <button class="ptab" onclick="setFcP('quarter',this)">Este trimestre</button>
+        </div>
+        <!-- KPIs -->
+        <div class="kpi-grid" id="kpi-fc" style="grid-template-columns:repeat(3,1fr)"></div>
+        <!-- Cards por funnel -->
+        <div class="sh">
+          <div class="sh-t">📅 Forecast por Funnel y Vendedor</div>
+        </div>
+        <div class="fc-grid" id="fc-cards"></div>
+        <!-- Actividades vencidas vs futuras -->
+        <div class="two-col" style="margin-top:4px">
+          <div>
+            <div class="sh">
+              <div class="sh-t">⚠️ Sin actividad futura <span class="chip cr" id="n-noact">0</span></div>
+            </div>
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Deal</th>
+                    <th>Vendedor</th>
+                    <th class="col-hide">Funnel</th>
+                    <th class="ar">Valor ARS</th>
+                    <th>Cierre</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-noact-fc"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div class="sh">
+              <div class="sh-t">🕐 Actividad vencida <span class="chip cy" id="n-overact">0</span></div>
+            </div>
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Deal</th>
+                    <th>Vendedor</th>
+                    <th class="col-hide">Funnel</th>
+                    <th class="ar">Valor ARS</th>
+                    <th>Cierre</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-overact-fc"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Detalle tabla -->
+        <div class="sh">
+          <div class="sh-t">📋 Todos los deals del período</div>
+        </div>
+        <div class="fr">
+          <label>Funnel:</label>
+          <select id="fc-pf" onchange="renderFcTable()">
+            <option value="">Todos</option>
+            <option value="151">🇦🇷 Argentina</option>
+            <option value="149">🇺🇾 Uruguay</option>
+            <option value="159">🇵🇾 Paraguay</option>
+          </select>
+          <label>Vendedor:</label>
+          <select id="fc-vf" onchange="renderFcTable()">
+            <option value="">Todos</option>
+          </select>
+          <label>Actividad:</label>
+          <select id="fc-af" onchange="renderFcTable()">
+            <option value="">Todos</option>
+            <option value="noact">Sin actividad</option>
+            <option value="over">Act. vencida</option>
+            <option value="ok">Al día</option>
+          </select>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Deal</th>
+                <th class="col-hide">Org</th>
+                <th>Vendedor</th>
+                <th class="col-hide">Funnel</th>
+                <th class="col-hide">Etapa</th>
+                <th class="ar">Valor ARS</th>
+                <th>Cierre</th>
+                <th>Actividad</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-fc"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DESARROLLO DE CUENTAS -->
+      <div class="page" id="page-dev">
+
+        <!-- KPIs superiores -->
+        <div class="kpi-grid" id="kpi-dev"></div>
+
+        <!-- Dos columnas: Forecast + Ganados recientes -->
+        <div class="two-col">
+
+          <!-- Forecast del mes en Desarrollo -->
+          <div class="card">
+            <div class="sh">
+              <div class="sh-t">📅 Forecast del Mes
+                <span class="chip cb" id="dev-fc-count">0 deals</span>
+              </div>
+            </div>
+            <!-- KPI total -->
+            <div id="dev-fc-total" style="font-size:20px;font-weight:800;
+              color:#027a48;font-family:'JetBrains Mono',monospace;
+              margin-bottom:14px"></div>
+            <!-- Tabla por vendedor -->
+            <div id="dev-fc-by-vendor"></div>
+          </div>
+
+          <!-- Ganados este mes en Desarrollo -->
+          <div class="card">
+            <div class="sh">
+              <div class="sh-t">🏆 Ganados Este Mes
+                <span class="chip cg" id="dev-won-count">0 deals</span>
+              </div>
+            </div>
+            <div id="dev-won-total" style="font-size:20px;font-weight:800;
+              color:#027a48;font-family:'JetBrains Mono',monospace;
+              margin-bottom:14px"></div>
+            <div class="tw">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Deal</th><th>Organización</th>
+                    <th>Vendedor</th><th>Valor ARS</th><th>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-dev-won"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Tabla completa de deals abiertos en Desarrollo -->
+        <div class="sh" style="margin-top:4px">
+          <div class="sh-t">🗂️ Pipeline Abierto — Desarrollo de Cuentas
+            <span class="chip cgr" id="dev-open-count">0</span>
+          </div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Deal</th><th>Organización</th><th>Vendedor</th>
+                <th>Etapa</th><th>Valor ARS</th>
+                <th>Cierre Est.</th><th>Actividad</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-dev-open"></tbody>
+          </table>
+        </div>
+
+        <!-- Deals sin actividad en Desarrollo -->
+        <div class="sh">
+          <div class="sh-t">⚠️ Sin Actividad en Desarrollo
+            <span class="chip cr" id="dev-noact-count">0</span>
+          </div>
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Deal</th><th>Organización</th><th>Vendedor</th>
+                <th>Valor ARS</th><th>Etapa</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-dev-noact"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- KANBAN -->
+      <div class="page" id="page-kanban">
+        <div class="kb-f" id="kb-f"></div>
+        <div class="kb-board" id="kb-board"></div>
+      </div>
+
+      <!-- WON -->
+      <div class="page" id="page-won">
+        <div class="kpi-grid" id="kpi-won"></div>
+        <div class="fr">
+          <label>Mes:</label>
+          <select id="f-m" onchange="renderWon()">
+            <option value="">Todos</option>
+            <option value="1">Ene</option>
+            <option value="2">Feb</option>
+            <option value="3">Mar</option>
+            <option value="4">Abr</option>
+            <option value="5">May</option>
+            <option value="6">Jun</option>
+            <option value="7">Jul</option>
+            <option value="8">Ago</option>
+            <option value="9">Sep</option>
+            <option value="10">Oct</option>
+            <option value="11">Nov</option>
+            <option value="12">Dic</option>
+          </select>
+          <label>Año:</label><select id="f-y" onchange="renderWon()"></select>
+          <label>Vendedor:</label><select id="f-v" onchange="renderWon()">
+            <option value="">Todos</option>
+          </select>
+          <label>Funnel:</label>
+          <select id="f-p" onchange="renderWon()">
+            <option value="">Todos</option>
+            <option value="151">🇦🇷 Argentina</option>
+            <option value="149">🇺🇾 Uruguay</option>
+            <option value="159">🇵🇾 Paraguay</option>
+          </select>
+          <input type="text" id="f-s" placeholder="Buscar…" oninput="renderWon()" style="width:130px">
+        </div>
+        <div class="tw">
+          <table>
+            <thead>
+              <tr>
+                <th>Deal</th>
+                <th class="col-hide">Organización</th>
+                <th>Vendedor</th>
+                <th>Propietario</th>
+                <th class="col-hide">Funnel</th>
+                <th class="ar">Valor ARS</th>
+                <th>Ganado</th>
+              </tr>
+            </thead>
+            <tbody id="tbl-won"></tbody>
+          </table>
+        </div>
+      </div>
+
+
+
+    </div>
+  </div>
+
+
+  <nav id="bottom-nav">
+    <div class="bn-item on" data-p="dashboard" onclick="go('dashboard',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="bn-item" data-p="ranking" onclick="go('ranking',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+      </svg>
+      <span>Ranking</span>
+    </div>
+    <div class="bn-item" data-p="forecast" onclick="go('forecast',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+      <span>Forecast</span>
+    </div>
+    <div class="bn-item" data-p="dev" onclick="go('dev',this)" style="font-size:8px;padding:4px 0">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <span>Desarrollo</span>
+    </div>
+    <div class="bn-item" data-p="kanban" onclick="go('kanban',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+      </svg>
+      <span>Kanban</span>
+    </div>
+    <div class="bn-item" data-p="won" onclick="go('won',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <span>Ganados</span>
+    </div>
+
+  </nav>
+
+  <script>
+    // ════════════════════════════════════════
+    // VENDOR ID MAP — option IDs from Pipedrive custom field
+    // ════════════════════════════════════════
+    const VM = {
+      219: 'Juan B', 279: 'Luciano R', 388: 'Lucia P', 389: 'Lucia P',
+      458: 'Mateo L', 516: 'Omar B', 519: 'Vanessa A', 520: 'Hernan P',
+      528: 'Emiliana G', 529: 'Federico S', 530: 'Tomas G', 531: 'Magui R',
+      532: 'Federico C', 533: 'Eduardo A', 534: 'Matias R', 535: 'Fernanda A', 536: 'Santiago S'
+    };
+    // Core team (shown in ranking)
+    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Omar B', 'Vanessa A', 'Emiliana G', 'Federico S'];
+    const TEAM_COLORS = {
+      'Hernan P': '#1a56db', 'Mateo L': '#027a48', 'Juan B': '#5925dc',
+      'Luciano R': '#b54708', 'Lucia P': '#b42318', 'Omar B': '#0891b2',
+      'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706'
+    };
+    const VKEY = '56886cd51be8dc1caeead05ed3d8cfb095c12afd';
+    const OPEN_P = new Set([149, 151, 159]);
+    const WON_P = new Set([29, 30, 31, 32, 149, 151, 156, 158, 159]);
+    const PM = {
+      149: { s: 'URY', cls: 'p-ury', flag: '🇺🇾', n: 'Uruguay' },
+      151: { s: 'ARG', cls: 'p-arg', flag: '🇦🇷', n: 'Argentina' },
+      159: { s: 'PAR', cls: 'p-par', flag: '🇵🇾', n: 'Paraguay' },
+      29: { s: 'ARG', cls: 'p-tri', flag: '🇦🇷', n: 'Trials ARG' },
+      30: { s: 'ARG', cls: 'p-tri', flag: '🇦🇷', n: 'Trials ARG' },
+      31: { s: 'URY', cls: 'p-tri', flag: '🇺🇾', n: 'Trials URY' },
+      32: { s: 'URY', cls: 'p-tri', flag: '🇺🇾', n: 'Trials URY' },
+      156: { s: 'PAR', cls: 'p-tri', flag: '🇵🇾', n: 'Trials PAR' },
+      158: { s: 'DEV', cls: 'p-dev', flag: '🔧', n: 'Desarrollo' },
+    };
+    const BASE = 'https://api.pipedrive.com/v1';
+    let TOKEN = '';
+    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {} };
+    let chR = null, chF = null, kbF = 'all', fcP = 'month';
+    const OBJ_DEFAULT = 6000000;
+
+    // ════════════════════════════════════════
+    // VENDOR RESOLVER — priority: custom field → owner
+    // ════════════════════════════════════════
+    function gv(d) {
+      const raw = d[VKEY];
+      if (raw != null && raw !== '') {
+        if (typeof raw === 'object' && raw !== null) {
+          if (raw.label && raw.label.trim()) return raw.label.trim();
+          if (raw.id && VM[raw.id]) return VM[raw.id];
+        }
+        const id = parseInt(raw);
+        if (!isNaN(id) && VM[id]) return VM[id];
+        if (typeof raw === 'string' && raw.trim() && isNaN(parseInt(raw))) return raw.trim();
+      }
+      return d.user_id?.name || d.owner_name || '—';
+    }
+
+    // ════════════════════════════════════════
+    // DEDUP — ONLY keep deals whose title starts with a number
+    // "114985 – Freddo" ✅  /  "Trato Freddo" ❌
+    // Fallback: if less than 30% have numeric prefix, keep all (safety net)
+    // ════════════════════════════════════════
+    function dedup(deals) {
+      const withNum = deals.filter(d => /^\d/.test((d.title || '').trim()));
+      return withNum.length >= Math.max(1, deals.length * 0.3) ? withNum : deals;
+    }
+    // ════════════════════════════════════════
+    // INIT
+    // ════════════════════════════════════════
+    window.addEventListener('DOMContentLoaded', () => {
+      const t = localStorage.getItem('pd_token');
+      if (t) { TOKEN = t; closeCfg(); loadAll(); }
+      const now = new Date();
+      document.getElementById('f-m').value = now.getMonth() + 1;
+      buildYSel(now.getFullYear());
+      document.getElementById('obj-period').textContent =
+        now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    });
+    function buildYSel(y) {
+      const s = document.getElementById('f-y');
+      for (let i = y; i >= y - 3; i--) { const o = document.createElement('option'); o.value = i; o.textContent = i; if (i === y) o.selected = true; s.appendChild(o); }
+    }
+
+    // ════════════════════════════════════════
+    // CONFIG
+    // ════════════════════════════════════════
+    async function saveToken() {
+      const t = document.getElementById('tok').value.trim(); if (!t) return; TOKEN = t;
+      const ok = await testTok();
+      if (ok) { localStorage.setItem('pd_token', t); closeCfg(); loadAll(); }
+      else document.getElementById('cfg-er').style.display = 'block';
+    }
+    function closeCfg() { document.getElementById('cfg').classList.remove('show'); }
+    function openCfg() { document.getElementById('tok').value = TOKEN; document.getElementById('cfg-er').style.display = 'none'; document.getElementById('cfg').classList.add('show'); }
+    async function testTok() { try { const r = await fetch(`${BASE}/users/me?api_token=${TOKEN}`); return r.ok; } catch { return false; } }
+
+    // ════════════════════════════════════════
+    // FETCH
+    // ════════════════════════════════════════
+    async function pdG(ep, p = {}, ms = 18000) {
+      const u = new URL(`${BASE}${ep}`); u.searchParams.set('api_token', TOKEN);
+      Object.entries(p).forEach(([k, v]) => u.searchParams.set(k, v));
+      const c = new AbortController(); const t = setTimeout(() => c.abort(), ms);
+      try { const r = await fetch(u, { signal: c.signal }); clearTimeout(t); if (!r.ok) return { data: [], more: false }; const j = await r.json(); return { data: j.data || [], more: !!j.additional_data?.pagination?.more_items_in_collection }; }
+      catch { clearTimeout(t); return { data: [], more: false }; }
+    }
+    async function pdAll(ep, p = {}, maxP = 18) {
+      const ps = [];
+      for (let i = 0; i < maxP; i++) ps.push(pdG(ep, { ...p, limit: 500, start: i * 500 }));
+      const rs = await Promise.all(ps);
+      let all = [];
+      for (const { data } of rs) {
+        if (!data || !data.length) break;
+        all = all.concat(data);
+      }
+      return all;
+    }
+
+    // ════════════════════════════════════════
+    // LOAD ALL
+    // ════════════════════════════════════════
+    async function loadAll() {
+      setRef(true); showLd('Conectando…');
+      try {
+        setLd('Pipelines y etapas…');
+        const [{ data: pipes }, { data: stgs }] = await Promise.all([pdG('/pipelines'), pdG('/stages')]);
+        S.pipelines = pipes || []; S.stages = stgs || [];
+        setLd('Descargando deals (Ultra rápido)…');
+        const [rawO, rawW] = await Promise.all([
+          pdAll('/deals', { status: 'open' }, 18),
+          pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5)
+        ]);
+        S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
+        S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
+        S.devOpen = dedup(rawO.filter(d => d.pipeline_id === 158));
+        S.devWon  = rawW.filter(d => d.pipeline_id === 158);
+
+        setLd('Tipo de cambio…');
+        await loadFX();
+      } catch (e) { console.error(e); }
+      hideLd(); renderAll(); buildSels();
+      document.getElementById('sb-ts').textContent = 'Act: ' + new Date().toLocaleTimeString('es-AR');
+      setRef(false);
+    }
+
+    function loadFX() {
+      S.fx = { USD: 1400, UYU: 35 };
+      document.getElementById('fx-bar').innerHTML = `💱 <span class="fxv">USD $1.400</span> · <span class="fxv">UYU $35</span>`;
+      if (document.getElementById('mob-fx')) document.getElementById('mob-fx').innerHTML = `U$1.400 · U$S 35`;
+    }
+
+    // ════════════════════════════════════════
+    // HELPERS
+    // ════════════════════════════════════════
+
+    const emptySt = (ic, ti, su) => `<tr><td colspan="10" class="empty-st"><div class="empty-ti">${ti}</div><div class="empty-su" style="margin-top:4px">${su}</div></td></tr>`;
+    const rAva = (v) => {
+      if (!v || v === '—') return v;
+      const i = v.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      const c = TEAM_COLORS[v] || '#6c7585';
+      return `<div class="ava-w"><div class="ava" style="background:${c}">${i}</div><span>${v}</span></div>`;
+    };
+    const $A = (n) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(n);
+    function toA(d) {
+      const cur = (d.currency || 'ARS').toUpperCase();
+      const orig = d.value ?? 0;
+      if (cur === 'ARS') return orig;
+      const conv = d.value_converted;
+      if (conv != null && conv > 0 && Math.abs(conv - orig) > 1) {
+        if (conv > orig * 100 && orig > 1000) return orig;
+        return conv;
+      }
+      const rate = cur === 'UYU' ? (S.fx.UYU || 35) : (S.fx[cur] || 1);
+      const converted = orig * rate;
+      if (converted > orig * 100 && orig > 100000) return orig;
+      return converted;
+    }
+    function fc(d) {
+      const cur = (d.currency || 'ARS').toUpperCase();
+      const a = $A(toA(d));
+      if (cur !== 'ARS' && d.value != null) {
+        const orig = d.value ?? 0;
+        const finalVal = toA(d);
+        if (Math.abs(finalVal - orig) / (orig || 1) > 0.05) {
+          return a + `<span style="opacity:.35;font-size:.8em;margin-left:3px">(${cur} ${Number(orig).toLocaleString('es-AR')})</span>`;
+        }
+      }
+      return a;
+    }
+
+    function fd(s) { if (!s) return '—'; return new Date(s).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }); }
+    function dt(s) { if (!s) return null; const d = new Date(s); d.setHours(0, 0, 0, 0); const n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((d - n) / 86400000); }
+    function gsn(d) { const s = S.stages.find(x => x.id === d.stage_id); return s ? s.name : '—'; }
+    function pp(pid) { const m = PM[pid] || { s: '?', cls: '', flag: '' }; return `<span class="pp ${m.cls}">${m.flag} ${m.s}</span>`; }
+    function sumA(a) { return a.reduce((s, d) => s + toA(d), 0); }
+
+    // Activity status for a deal
+    function actStatus(d) {
+      // undone_activities_count = pending future activities
+      // If no undone and no done → no activity at all
+      const pend = d.undone_activities_count || 0;
+      const done = d.done_activities_count || 0;
+      const next = d.next_activity_date;
+      const last = d.last_activity_date;
+      if (pend === 0 && done === 0) return 'noact'; // no activity ever
+      if (pend === 0 && done > 0) return 'noact'; // all done, nothing scheduled
+      // Has pending — check if next_activity_date is in the past
+      if (next) {
+        const n = new Date(next); n.setHours(0, 0, 0, 0); const today = new Date(); today.setHicks(0, 0, 0, 0);
+        if (n < today) return 'over'; // overdue
+      }
+      return 'ok';
+    }
+    // Simpler version without typo
+    function actSt(d) {
+      const pend = d.undone_activities_count || 0;
+      if (pend > 0) return 'ok';
+      if (d.next_activity_date) {
+        const n = new Date(d.next_activity_date); n.setHours(0, 0, 0, 0);
+        const t = new Date(); t.setHours(0, 0, 0, 0);
+        if (n >= t) return 'ok';
+      }
+      const last = d.last_activity_date ? dt(d.last_activity_date) : null;
+      if (last === null || last < -10) return 'noact';
+      return 'ok';
+    }
+
+    // ════════════════════════════════════════
+    // NAV
+    // ════════════════════════════════════════
+    const PM_TXT = {
+      dashboard: ['Dashboard General', 'Pipeline activo — ARG · URY · PAR'],
+      ranking: ['Ranking de Vendedores', 'Seguimiento del objetivo mensual'],
+      forecast: ['Forecast del Mes', 'Proyección por fecha de cierre estimada'],
+      dev: ['Desarrollo de Cuentas', 'Pipeline 158 · Deals activos y ganados'],
+      kanban: ['Pipeline Kanban', 'Deals organizados por etapa'],
+      won: ['Deals Ganados', 'Histórico de ventas cerradas'],
+    };
+    function go(id, el) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+      document.querySelectorAll('.sb-lk').forEach(n => n.classList.remove('on'));
+      document.querySelectorAll('.bn-item').forEach(n => n.classList.remove('on'));
+      document.getElementById('page-' + id).classList.add('on');
+      document.querySelectorAll(`[data-p="${id}"]`).forEach(n => n.classList.add('on'));
+      const [h, p] = PM_TXT[id] || ['', ''];
+      document.getElementById('top-h').textContent = h;
+      document.getElementById('top-p').textContent = p;
+    }
+
+    // ════════════════════════════════════════
+    // SELECTORS
+    // ════════════════════════════════════════
+    function buildSels() {
+      const vs = new Set();
+      [...S.open, ...S.won].forEach(d => { const v = gv(d); if (v && v !== '—') vs.add(v); });
+      const opts = '<option value="">Todos</option>' + [...vs].sort().map(v => `<option value="${v}">${v}</option>`).join('');
+      ['f-v', 'fc-vf'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
+    }
+
+    function renderAll() { renderDash(); renderRanking(); renderForecast(); renderDev(); renderKanban(); renderWon(); }
+
+    // ════════════════════════════════════════
+    // DESARROLLO DE CUENTAS
+    // ════════════════════════════════════════
+    function renderDev() {
+      const now = new Date();
+      const cm = now.getMonth();
+      const cy = now.getFullYear();
+      const cq = Math.floor(cm / 3);
+
+      const open  = S.devOpen;  // deals abiertos en pipeline 158
+      const won   = S.devWon;   // deals ganados en pipeline 158
+
+      // Filtros temporales
+      const wonM = won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return w.getMonth() === cm && w.getFullYear() === cy;
+      });
+      const wonQ = won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return Math.floor(w.getMonth() / 3) === cq && w.getFullYear() === cy;
+      });
+      const wonY = won.filter(d =>
+        d.won_time && new Date(d.won_time).getFullYear() === cy
+      );
+
+      // Deals que cierran este mes (forecast)
+      const marStart = new Date(cy, cm, 1);
+      const marEnd   = new Date(cy, cm + 1, 0);
+      const forecast = open.filter(d => {
+        if (!d.expected_close_date) return false;
+        const c = new Date(d.expected_close_date);
+        return c >= marStart && c <= marEnd;
+      });
+
+      // Sin actividad
+      const noAct = open.filter(d => actSt(d) === 'noact');
+
+      // Alias local para toARS
+      const toARS = d => toA(d);
+
+      // ── KPIs ──
+      document.getElementById('kpi-dev').innerHTML = `
+        <div class="kpi">
+          <div class="kpi-ico i-p">🔧</div>
+          <div class="kpi-lb">Pipeline Abierto</div>
+          <div class="kpi-vl">${open.length}</div>
+          <div class="kpi-sb">${$A(sumA(open))}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ico i-b">📅</div>
+          <div class="kpi-lb">Forecast Mes</div>
+          <div class="kpi-vl">${forecast.length}</div>
+          <div class="kpi-sb">${$A(sumA(forecast))}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ico i-g">🏆</div>
+          <div class="kpi-lb">Ganados Mes</div>
+          <div class="kpi-vl">${wonM.length}</div>
+          <div class="kpi-sb">${$A(sumA(wonM))}</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ico i-g">📈</div>
+          <div class="kpi-lb">Revenue Q${cq + 1}</div>
+          <div class="kpi-vl md">${$A(sumA(wonQ))}</div>
+          <div class="kpi-sb">${wonQ.length} deals</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ico i-o">🎯</div>
+          <div class="kpi-lb">Revenue YTD</div>
+          <div class="kpi-vl md">${$A(sumA(wonY))}</div>
+          <div class="kpi-sb">${wonY.length} deals</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-ico i-r">⚠️</div>
+          <div class="kpi-lb">Sin Actividad</div>
+          <div class="kpi-vl">${noAct.length}</div>
+          <div class="kpi-sb">De ${open.length} abiertos</div>
+        </div>
+      `;
+
+      // ── FORECAST por vendedor ──
+      document.getElementById('dev-fc-count').textContent = forecast.length + ' deals';
+      document.getElementById('dev-fc-total').textContent = $A(sumA(forecast));
+
+      const fcByV = {};
+      forecast.forEach(d => {
+        const v = gv(d);
+        if (!fcByV[v]) fcByV[v] = { n: 0, v: 0 };
+        fcByV[v].n++;
+        fcByV[v].v += toARS(d);
+      });
+      const fcRows = Object.entries(fcByV).sort((a, b) => b[1].v - a[1].v);
+
+      document.getElementById('dev-fc-by-vendor').innerHTML = fcRows.length
+        ? fcRows.map(([v, d]) => `
+            <div style="display:flex;justify-content:space-between;
+              align-items:center;padding:7px 0;
+              border-bottom:1px solid #e4e7ec;font-size:12px">
+              <span style="color:#3d4451;font-weight:500">${v}</span>
+              <div style="display:flex;gap:14px;
+                font-family:'JetBrains Mono',monospace;font-size:11px">
+                <span style="color:#9aa1b1">${d.n} deal${d.n > 1 ? 's' : ''}</span>
+                <span style="color:#027a48;font-weight:700">${$A(d.v)}</span>
+              </div>
+            </div>`).join('')
+        : '<div class="empty">Sin deals con cierre este mes</div>';
+
+      // ── GANADOS MES ──
+      document.getElementById('dev-won-count').textContent = wonM.length + ' deals';
+      document.getElementById('dev-won-total').textContent = $A(sumA(wonM));
+
+      const tbWon = document.getElementById('tbl-dev-won');
+      tbWon.innerHTML = wonM.length
+        ? wonM
+            .sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
+            .map(d => `<tr>
+              <td class="tb">${d.title || '—'}</td>
+              <td>${d.org_name || '—'}</td>
+              <td>${gv(d)}</td>
+              <td class="tm" style="color:#027a48;font-weight:700">
+                ${fc(d)}
+              </td>
+              <td class="tm">${fd(d.won_time)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">Sin deals ganados este mes</td></tr>';
+
+      // ── PIPELINE ABIERTO ──
+      document.getElementById('dev-open-count').textContent = open.length;
+      const tbOpen = document.getElementById('tbl-dev-open');
+      tbOpen.innerHTML = open.length
+        ? open
+            .sort((a, b) => toARS(b) - toARS(a))
+            .map(d => {
+              const days = dt(d.expected_close_date);
+              const ast  = actSt(d);
+              const dc   = days !== null && days < 0 ? '#b42318'
+                         : days !== null && days <= 7 ? '#b54708'
+                         : '#9aa1b1';
+              const at   = ast === 'noact'
+                ? '<span class="tag tr">⚠ Sin act.</span>'
+                : ast === 'over'
+                ? '<span class="tag ty">🕐 Vencida</span>'
+                : '<span class="tag tg">✓ Al día</span>';
+              return `<tr>
+                <td class="tb" style="max-width:160px;overflow:hidden;
+                  text-overflow:ellipsis;white-space:nowrap">
+                  ${d.title || '—'}
+                </td>
+                <td>${d.org_name || '—'}</td>
+                <td>${gv(d)}</td>
+                <td style="color:#6c7585;font-size:10px">${gsn(d)}</td>
+                <td class="tm" style="color:#027a48;font-weight:700">
+                  ${fc(d)}
+                </td>
+                <td class="tm" style="color:${dc}">
+                  ${d.expected_close_date ? fd(d.expected_close_date) : '—'}
+                </td>
+                <td>${at}</td>
+              </tr>`;
+            }).join('')
+        : '<tr><td colspan="7" class="empty">Sin deals abiertos</td></tr>';
+
+      // ── SIN ACTIVIDAD ──
+      document.getElementById('dev-noact-count').textContent = noAct.length;
+      const tbNoact = document.getElementById('tbl-dev-noact');
+      tbNoact.innerHTML = noAct.length
+        ? noAct
+            .sort((a, b) => toARS(b) - toARS(a))
+            .map(d => `<tr>
+              <td class="tb">${d.title || '—'}</td>
+              <td>${d.org_name || '—'}</td>
+              <td>${gv(d)}</td>
+              <td class="tm" style="color:#027a48;font-weight:700">
+                ${fc(d)}
+              </td>
+              <td style="color:#6c7585">${gsn(d)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">✅ Todos tienen actividad</td></tr>';
+    }
+
+    // ════════════════════════════════════════
+    // ════════════════════════════════════════
+    // DASHBOARD
+    // ════════════════════════════════════════
+    function renderDash() {
+      const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
+      const open = S.open;
+
+      // Won this month — strict: only numeric-prefix titles AND won_time in current month/year
+      const wonM = S.won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return w.getMonth() === cm && w.getFullYear() === cy;
+      });
+      // Q1 = all won deals in current year, Q1 months (Jan-Mar = months 0-2)
+      const wonQ = S.won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return Math.floor(w.getMonth() / 3) === cq && w.getFullYear() === cy;
+      });
+      // YTD = all won in current year
+      const wonY = S.won.filter(d => d.won_time && new Date(d.won_time).getFullYear() === cy);
+      const noAct = open.filter(d => actSt(d) === 'noact');
+
+      // Pipeline con presupuesto = open deals that have a value > 0
+      const openWithVal = open.filter(d => (d.value || 0) > 0);
+      const openNoVal = open.filter(d => !(d.value || 0) > 0);
+
+      // Deals closing in March (current month)
+      const marStart = new Date(cy, cm, 1);
+      const marEnd = new Date(cy, cm + 1, 0);
+      const closingMar = open.filter(d => {
+        if (!d.expected_close_date) return false;
+        const c = new Date(d.expected_close_date);
+        return c >= marStart && c <= marEnd;
+      });
+
+      document.getElementById('kpi-d').innerHTML = `
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">📂</div><div class="kpi-lb">Pipeline Abierto</div><div class="kpi-vl">${open.length}</div><div class="kpi-trend">${openWithVal.length} con monto · ${openNoVal.length} sin monto</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-g">💰</div><div class="kpi-lb">Valor Pipeline</div><div class="kpi-vl md">${$A(sumA(openWithVal))}</div><div class="kpi-trend">${openNoVal.length} sin monto cargado</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">🏆</div><div class="kpi-lb">Ganados Mes</div><div class="kpi-vl">${wonM.length}</div><div class="kpi-trend">${$A(sumA(wonM))}</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-g">📈</div><div class="kpi-lb">Revenue Mes (ARS)</div><div class="kpi-vl md">${$A(sumA(wonM))}</div><div class="kpi-trend">${wonM.length} deals cerrados</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-p">📊</div><div class="kpi-lb">Revenue Q${cq + 1} (ARS)</div><div class="kpi-vl md">${$A(sumA(wonQ))}</div><div class="kpi-trend">${wonQ.length} deals acumulados</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-o">🎯</div><div class="kpi-lb">Revenue YTD</div><div class="kpi-vl md">${$A(sumA(wonY))}</div><div class="kpi-trend">${wonY.length} deals este año</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-r">⚠️</div><div class="kpi-lb">Sin Actividad</div><div class="kpi-vl">${noAct.length}</div><div class="kpi-trend">De ${open.length} abiertos</div></div>
+    <div class="kpi" style="border-left:3px solid #f59e0b; border-top-color:#b54708"><div class="kpi-ico i-y">📅</div><div class="kpi-lb">Cierran en Marzo</div><div class="kpi-vl">${closingMar.length}</div><div class="kpi-trend">${$A(sumA(closingMar))} en juego</div></div>
+  `;
+
+      // Revenue por vendedor este mes — en millones
+      const bV = {};
+      wonM.forEach(d => { const v = gv(d); bV[v] = (bV[v] || 0) + toA(d); });
+      const rL = Object.keys(bV).filter(k => bV[k] > 0).sort((a, b) => bV[b] - bV[a]);
+      if (chR) chR.destroy();
+      chR = new Chart(document.getElementById('ch-r').getContext('2d'), {
+        type: 'bar', indexAxis: 'y',
+        data: {
+          labels: rL,
+          datasets: [{
+            data: rL.map(k => bV[k] / 1000000), // en millones
+            backgroundColor: rL.map(k => TEAM_COLORS[k] || '#1a56db'),
+            borderRadius: 5, borderSkipped: false
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => '$' + c.parsed.y.toFixed(2) + 'M ARS' } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6c7585', font: { size: 9 } } },
+            y: {
+              grid: { color: 'rgba(0,0,0,.04)' },
+              ticks: { color: '#6c7585', font: { size: 9 }, callback: v => v.toFixed(1) + 'M' }
+            }
+          }
+        }
+      });
+
+      // Pipeline por funnel
+      const pf = { ARG: 0, URY: 0, PAR: 0 };
+      S.open.forEach(d => {
+        if (d.pipeline_id === 151) pf.ARG += toA(d);
+        else if (d.pipeline_id === 149) pf.URY += toA(d);
+        else if (d.pipeline_id === 159) pf.PAR += toA(d);
+      });
+      if (chF) chF.destroy();
+      chF = new Chart(document.getElementById('ch-f').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: ['🇦🇷 ARG (' + $A(pf.ARG) + ')', '🇺🇾 URY (' + $A(pf.URY) + ')', '🇵🇾 PAR (' + $A(pf.PAR) + ')'],
+          datasets: [{ data: Object.values(pf), backgroundColor: ['#1a56db', '#027a48', '#b54708'], borderWidth: 0, hoverOffset: 3 }]
+        },
+        options: {
+          responsive: true, cutout: '60%',
+          plugins: {
+            legend: { position: 'bottom', labels: { color: '#6c7585', font: { size: 9 }, padding: 10, boxWidth: 9 } },
+            tooltip: { callbacks: { label: c => `${$A(c.parsed)}` } }
+          }
+        }
+      });
+
+      // Closing this month — ARG / URY / PAR breakdown
+      const cmARG = closingMar.filter(d => d.pipeline_id === 151);
+      const cmURY = closingMar.filter(d => d.pipeline_id === 149);
+      const cmPAR = closingMar.filter(d => d.pipeline_id === 159);
+
+      // Section: deals closing in March + no-activity deals
+      const existingHotSection = document.getElementById('dash-extra');
+      if (existingHotSection) existingHotSection.remove();
+
+      const dashPage = document.getElementById('page-dashboard');
+      const extraHTML = document.createElement('div');
+      extraHTML.id = 'dash-extra';
+      extraHTML.innerHTML = `
+    <div class="sh" style="margin-top:4px"><div class="sh-t">📅 Cierran en Marzo — ARG · URY · PAR <span class="chip cb">${closingMar.length} deals · ${$A(sumA(closingMar))}</span></div></div>
+    <div class="dash-h-scroll">
+      ${[{ lbl: '🇦🇷 Argentina', deals: cmARG, c: '#1a56db' }, { lbl: '🇺🇾 Uruguay', deals: cmURY, c: '#027a48' }, { lbl: '🇵🇾 Paraguay', deals: cmPAR, c: '#b54708' }].map(f => `
+        <div class="card" style="padding:13px;border-top:3px solid ${f.c}">
+          <div style="font-size:11px;font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between">${f.lbl}</div>
+          <div style="font-size:13px;font-weight:800;color:#027a48;font-family:'JetBrains Mono',monospace;margin-bottom:4px">${$A(sumA(f.deals))}</div>
+          <div style="font-size:9px;color:#6c7585;margin-bottom:12px">${f.deals.length} deals · Prom ${f.deals.length ? $A(sumA(f.deals) / f.deals.length) : '$0'}</div>
+          ${f.deals.length ? f.deals.slice(0, 4).map(d => `<div style="display:flex;justify-content:space-between;font-size:10px;padding:3px 0;border-bottom:1px solid #eef0f4">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="color:#3d4451;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title}</span><span style="color:#9aa1b1;font-size:8px;font-style:italic">${gv(d)}</span></div>
+            <span style="color:#027a48;font-weight:700;font-family:'JetBrains Mono',monospace;font-size:9px">${$A(toA(d))}</span>
+          </div>`).join('') : '<div style="text-align:center;padding:12px 0;color:#9aa1b1;font-size:10px"><div style="font-size:24px;margin-bottom:4px">📭</div>No deals</div>'}
+        </div>`).join('')}
+    </div>
+    <div class="sh"><div class="sh-t">⚠️ Deals sin actividad <span class="chip cr">${noAct.length}</span></div></div>
+    <div class="sh"><div class="sh-t">Deals sin actividad <span class="chip cr">${noAct.length}</span></div></div>
+    <div class="tw" style="margin-bottom:14px"><table>
+      <thead><tr><th>Deal</th><th>Org</th><th>Vendedor</th><th class="col-hide">Funnel</th><th class="ar">Valor ARS</th><th>Etapa</th><th>Cierre est.</th></tr></thead>
+      <tbody>${noAct.length ? noAct.sort((a, b) => toA(b) - toA(a)).map(d => `<tr>
+        <td class="tb" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
+        <td class="col-hide">${d.org_name || '—'}</td><td>${rAva(gv(d))}</td><td class="col-hide">${pp(d.pipeline_id)}</td>
+        <td class="tm" class="ar-vl">${fc(d)}</td>
+        <td style="color:#6c7585;font-size:10px">${gsn(d)}</td>
+        <td class="tm col-hide">${fd(d.expected_close_date)}</td>
+      </tr>`).join('') : emptySt('✅', 'Deals con su actividad', 'El equipo de ventas tiene los seguimientos al día')}</tbody>
+    </table></div>
+
+    <div class="sh"><div class="sh-t">Deals Calientes <span class="chip cy">≤7 días</span></div></div>
+    <div class="tw"><table>
+      <thead><tr><th>Deal</th><th class="col-hide">Organización</th><th>Vendedor</th><th class="col-hide">Funnel</th><th class="ar">Valor ARS</th><th>Cierre</th><th>Estado</th></tr></thead>
+      <tbody id="tbl-hot"></tbody>
+    </table></div>
+  `;
+      dashPage.appendChild(extraHTML);
+
+      // Hot deals
+      const hot = S.open.filter(d => d.expected_close_date && dt(d.expected_close_date) !== null && dt(d.expected_close_date) <= 7)
+        .sort((a, b) => new Date(a.expected_close_date) - new Date(b.expected_close_date));
+      const tb = document.getElementById('tbl-hot');
+      if (!tb) return;
+      if (!hot.length) { tb.innerHTML = emptySt('🔥', 'Todos los deals están fríos', 'Ningún deal cierra en la próxima semana'); return; }
+      tb.innerHTML = hot.map(d => {
+        const days = dt(d.expected_close_date);
+        const cls = days < 0 ? 'tr' : days <= 3 ? 'ty' : 'tb2';
+        const lbl = days < 0 ? `Venció ${Math.abs(days)}d` : days === 0 ? 'Hoy' : `${days}d`;
+        return `<tr><td class="tb" style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td><td class="col-hide">${d.org_name || '—'}</td><td>${rAva(gv(d))}</td><td class="col-hide">${pp(d.pipeline_id)}</td><td class="tm" class="ar-vl">${fc(d)}</td><td class="tm col-hide">${fd(d.expected_close_date)}</td><td><span class="tag ${cls}">${lbl}</span></td></tr>`;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // RANKING
+    // ════════════════════════════════════════
+    function renderRanking() {
+      const now = new Date(), cm = now.getMonth(), cy = now.getFullYear();
+      const obj = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT;
+      document.getElementById('obj-label').textContent = '$' + obj.toLocaleString('es-AR') + ' ARS por vendedor';
+
+      const wonM = S.won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return w.getMonth() === cm && w.getFullYear() === cy;
+      });
+
+      const openByV = {};
+      S.open.forEach(d => { const v = gv(d); if (v && v !== '—') { if (!openByV[v]) openByV[v] = 0; openByV[v] += toA(d); } });
+
+      // Build stats only for TEAM members
+      const stats = {};
+      TEAM.forEach(v => stats[v] = { rev: 0, deals: [], cnt: 0, pipe: openByV[v] || 0 });
+      wonM.forEach(d => {
+        const v = gv(d);
+        if (stats[v]) { stats[v].rev += toA(d); stats[v].cnt++; stats[v].deals.push(d); }
+        else if (v && v !== '—') { stats[v] = { rev: toA(d), deals: [d], cnt: 1, pipe: openByV[v] || 0 }; }
+      });
+
+      // Sort by revenue descending, only show vendors with deals or team members
+      const sorted = Object.entries(stats).sort((a, b) => b[1].rev - a[1].rev);
+
+      document.getElementById('rk-table').innerHTML = sorted.map(([v, d], i) => {
+        const pct = Math.min((d.rev / obj) * 100, 100);
+        const over = d.rev >= obj;
+        const bc = over ? '#027a48' : pct >= 60 ? '#1a56db' : '#ef4444';
+        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : '')); 
+        const pe = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`;
+        const pc = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+        return `<div class="rk-summary-row ${rkCls}">
+      <div class="rk-pos-num ${pc}">${pe}</div>
+      <div class="rk-s-name">
+        ${rAva(v)}
+        <div class="rk-s-pipe mob">Pipe: ${$A(d.pipe)}</div>
+      </div>
+      <div class="rk-s-pipe desk" title="Pipeline abierto">${$A(d.pipe)}</div>
+      <div style="font-size:8px;color:#9aa1b1;margin-top:2px">${d.deals.length ? `🏆 Mayor deal: ` + d.deals.reduce((a, b) => toA(a) > toA(b) ? a : b, d.deals[0]).title : `Sin ganados`}</div>
+      <div class="rk-s-bar"><div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div></div>
+      <div class="rk-s-pct">${Math.round(pct)}%</div>
+      <div class="rk-s-won">${$A(d.rev)}</div>
+    </div>`;
+      }).join('');
+
+      document.getElementById('rk-cards').innerHTML = sorted.map(([v, d], i) => {
+        const pct = Math.min((d.rev / obj) * 100, 100);
+        const over = d.rev >= obj;
+        const bc = over ? 'pb-over' : pct >= 60 ? 'pb-near' : 'pb-low';
+        const color = TEAM_COLORS[v] || '#1a56db';
+        const ini = v.split(' ').map(w => w[0]).join('').toUpperCase();
+        const rem = Math.max(0, obj - d.rev);
+        return `<div class="rk-card${i === 0 ? ' winner' : ''}">
+      <div class="rk-head">
+        <div class="rk-avatar" style="background:${color}">${ini}</div>
+        <div class="rk-info">
+          <div class="rk-name">${v}</div>
+          <div class="rk-pos">${i === 0 ? '1º Líder' : i === 1 ? '2º' : i === 2 ? '3º' : `#${i + 1}`} · ${d.cnt} deals</div>
+        </div>
+        <div style="text-align:right">
+          <div class="rk-rev">${$A(d.rev)}</div>
+          <div class="rk-obj">obj ${$A(obj)}</div>
+        </div>
+      </div>
+      <div class="pb-wrap">
+        <div class="pb-top">
+          <span>${over ? 'Objetivo cumplido' : $A(rem) + ' para llegar'}</span>
+          <span style="font-weight:700;color:${over ? '#027a48' : pct >= 60 ? '#1a56db' : '#b42318'}">${Math.round(pct)}%</span>
+        </div>
+        <div class="pb-track"><div class="pb-fill ${bc}" style="width:${pct}%"></div></div>
+      </div>
+      <div style="font-size:9px;color:#6c7585;margin-bottom:8px">Pipeline abierto: <strong style="color:#0a0d14">${$A(d.pipe)}</strong></div>
+      ${d.deals.length ? `<div class="rk-deals">
+        <div style="font-size:9px;font-weight:700;color:#6c7585;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ganados este mes</div>
+        ${d.deals.slice(0, 4).map(dl => `<div class="rk-deal-row">
+          <span class="rk-deal-name">${dl.title || '—'}</span>
+          <span class="rk-deal-val">${$A(toA(dl))}</span>
+        </div>`).join('')}
+        ${d.deals.length > 4 ? `<div class="rk-more">+${d.deals.length - 4} más</div>` : ''}
+      </div>`: '<div style="font-size:10px;color:#9aa1b1;margin-top:6px">Sin deals ganados este mes</div>'}
+    </div>`;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // FORECAST
+    // ════════════════════════════════════════
+    function setFcP(p, btn) {
+      fcP = p; document.querySelectorAll('.ptab').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderForecast();
+    }
+    function getRange(p) {
+      const now = new Date(), y = now.getFullYear(), m = now.getMonth(), q = Math.floor(m / 3);
+      if (p === 'month') return { s: new Date(y, m, 1), e: new Date(y, m + 1, 0), lbl: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) };
+      if (p === 'next') { const nm = m + 1 === 12 ? 0 : m + 1, ny = m + 1 === 12 ? y + 1 : y; return { s: new Date(ny, nm, 1), e: new Date(ny, nm + 1, 0), lbl: new Date(ny, nm, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) }; }
+      return { s: new Date(y, q * 3, 1), e: new Date(y, q * 3 + 3, 0), lbl: `Q${q + 1} ${y}` };
+    }
+    function renderForecast() {
+      const { s, e, lbl } = getRange(fcP);
+      document.getElementById('top-p').textContent = `Deals proyectados para ${lbl}`;
+      const [cyNum, cmNum] = [s.getFullYear(), s.getMonth() + 1];
+      const inR = d => { 
+        if (!d.expected_close_date) return false; 
+        const pts = d.expected_close_date.split('-');
+        return parseInt(pts[0]) === cyNum && parseInt(pts[1]) === cmNum;
+      };
+      const deals = S.open.filter(inR);
+
+      const funnels = [
+        { id: 151, name: '🇦🇷 Argentina', color: '#1a56db' },
+        { id: 149, name: '🇺🇾 Uruguay', color: '#027a48' },
+        { id: 159, name: '🇵🇾 Paraguay', color: '#b54708' },
+      ];
+
+      // KPI resumen
+      const totAll = sumA(deals);
+      document.getElementById('kpi-fc').innerHTML = funnels.map(f => {
+        const fd = deals.filter(d => d.pipeline_id === f.id);
+        const tot = sumA(fd);
+        return `<div class="kpi" style="border-top:3px solid ${f.color}">
+      <div class="kpi-ico" style="background:${f.color}22;font-size:18px">${f.name.slice(0, 2)}</div>
+      <div class="kpi-lb">${f.name.slice(3)}</div>
+      <div class="kpi-vl">${fd.length}</div>
+      <div class="kpi-trend">${$A(tot)} · Prom ${fd.length ? $A(tot / fd.length) : "$0"}</div>
+    </div>`;
+      }).join('') + `<div class="kpi" style="border-top:3px solid #6c7585">
+    <div class="kpi-ico" style="background:#f1f5f9;color:#475569"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
+    <div class="kpi-lb">Total período</div>
+    <div class="kpi-vl">${deals.length}</div>
+    <div class="kpi-trend">${$A(totAll)}</div>
+  </div>`;
+
+      // Cards por funnel con desglose por vendedor
+      document.getElementById('fc-cards').innerHTML = funnels.map(f => {
+        const fd = deals.filter(d => d.pipeline_id === f.id);
+        const tot = sumA(fd);
+        const bV = {};
+        fd.forEach(d => { const v = gv(d); if (!bV[v]) bV[v] = { n: 0, v: 0, noact: 0, over: 0 }; bV[v].n++; bV[v].v += toA(d); const st = actSt(d); if (st === 'noact') bV[v].noact++; else if (st === 'over') bV[v].over++; });
+        const rows = Object.entries(bV).sort((a, b) => b[1].v - a[1].v);
+        const noActCount = fd.filter(d => actSt(d) === 'noact').length;
+        const overCount = fd.filter(d => actSt(d) === 'over').length;
+        const vmax = Math.max(...rows.map(r => r[1].v)) || 1;
+        return `<div class="fc-card">
+      <div class="fc-hd">
+        <span class="fc-ti">${f.name}</span>
+        <div style="display:flex;gap:5px">
+          <span class="chip cb">${fd.length} deals</span>
+          ${noActCount ? `<span class="chip cr">${noActCount} sin act.</span>` : ''}
+          ${overCount ? `<span class="chip cy">${overCount} vencida</span>` : ''}
+        </div>
+      </div>
+      <div class="fc-body" style="padding-bottom:12px">
+        ${rows.length ? rows.map(([v, dx]) => `
+          <div class="fc-r ${dx.noact ? 'fc-noact' : dx.over ? 'fc-over' : ''}" style="padding:8px 6px">
+            <div style="flex:1;min-width:0;margin-right:10px">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
+                <span class="fc-vn">${rAva(v)}${dx.noact ? ` <span style="color:#b42318;font-size:10px;font-weight:bold">• Sin act</span>` : ''}${dx.over ? ` <span style="color:#b54708;font-size:10px;font-weight:bold">• Vencida</span>` : ''}</span>
+              </div>
+              <div class="pb-track" style="height:4px;background:#e2e8f0;border-radius:2px;overflow:hidden"><div class="pb-fill" style="width:${(dx.v / vmax) * 100}%;background:#1a56db;height:100%;border-radius:2px"></div></div>
+            </div>
+            <div class="fc-ns" style="flex-shrink:0;text-align:right;display:flex;flex-direction:column;gap:2px">
+              <span style="color:#027a48;font-weight:700">${$A(dx.v)}</span>
+              <span style="color:#9aa1b1">${dx.n}d</span>
+            </div>
+          </div>`).join('') : '<div style="padding:14px;text-align:center;color:#6c7585;font-size:11px">Sin deals</div>'}
+      </div>
+      <div class="fc-ft"><span class="fc-fl">Total</span><span class="fc-fv">${$A(tot)}</span></div>
+    </div>`;
+      }).join('');
+
+      // Actividad status
+      const noact = deals.filter(d => actSt(d) === 'noact');
+      const over = deals.filter(d => actSt(d) === 'over');
+      document.getElementById('n-noact').textContent = noact.length;
+      document.getElementById('n-overact').textContent = over.length;
+
+      const miniRow = d => `<tr>
+    <td class="tb" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
+    <td>${rAva(gv(d))}</td><td>${pp(d.pipeline_id)}</td>
+    <td class="tm" class="ar-vl">${fc(d)}</td>
+    <td class="tm col-hide">${fd(d.expected_close_date)}</td>
+  </tr>`;
+      document.getElementById('tbl-noact-fc').innerHTML = noact.length ? noact.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('🎉', 'Sin deals inactivos', 'Todos tienen actividades planificadas');
+      document.getElementById('tbl-overact-fc').innerHTML = over.length ? over.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('✅', 'Todo al día', 'Ninguna actividad se ha vencido');
+
+      renderFcTable();
+    }
+
+    function renderFcTable() {
+      const { s, e } = getRange(fcP);
+      const pf = document.getElementById('fc-pf')?.value;
+      const vf = document.getElementById('fc-vf')?.value;
+      const af = document.getElementById('fc-af')?.value;
+      let deals = S.open.filter(d => { if (!d.expected_close_date) return false; const c = new Date(d.expected_close_date); return c >= s && c <= e; });
+      if (pf) deals = deals.filter(d => String(d.pipeline_id) === pf);
+      if (vf) deals = deals.filter(d => gv(d) === vf);
+      if (af) deals = deals.filter(d => actSt(d) === af);
+      deals.sort((a, b) => new Date(a.expected_close_date) - new Date(b.expected_close_date));
+      const tb = document.getElementById('tbl-fc');
+      if (!deals.length) { tb.innerHTML = emptySt('🔎', 'Sin deals', 'No se encontraron deals en este funnel'); return; }
+      tb.innerHTML = deals.map(d => {
+        const days = dt(d.expected_close_date);
+        const dc = days < 0 ? 'tr' : days <= 7 ? 'ty' : 'tg';
+        const dl = days < 0 ? `-${Math.abs(days)}d` : days === 0 ? 'Hoy' : `+${days}d`;
+        const ast = actSt(d);
+        const at = ast === 'noact' ? '<span class="tag tr">⚠ Sin act.</span>' : ast === 'over' ? '<span class="tag ty">🕐 Vencida</span>' : '<span class="tag tg">✓ Al día</span>';
+        return `<tr>
+      <td class="tb" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
+      <td class="col-hide" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.org_name || '—'}</td>
+      <td>${rAva(gv(d))}</td><td class="col-hide">${pp(d.pipeline_id)}</td>
+      <td class="col-hide" style="color:#6c7585;font-size:10px">${gsn(d)}</td>
+      <td class="tm" class="ar-vl">${fc(d)}</td>
+      <td><span class="tag ${dc}">${dl} · ${fd(d.expected_close_date)}</span></td>
+      <td>${at}</td>
+    </tr>`;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // KANBAN
+    // ════════════════════════════════════════
+    function renderKanban() {
+      const pipes = [{ id: 'all', n: 'Todos' }, ...S.pipelines.filter(p => OPEN_P.has(p.id)).map(p => ({ id: p.id, n: (PM[p.id]?.flag || '') + ' ' + p.name }))];
+      document.getElementById('kb-f').innerHTML = pipes.map(p => `<button class="kb-btn ${kbF === String(p.id) ? 'on' : ''}" onclick="setKb('${p.id}',this)">${p.n}</button>`).join('');
+      buildKanban();
+    }
+    function setKb(id, btn) { kbF = id === 'all' ? 'all' : Number(id); document.querySelectorAll('.kb-btn').forEach(b => b.classList.remove('on')); btn.classList.add('on'); buildKanban(); }
+    function buildKanban() {
+      const deals = kbF === 'all' ? S.open : S.open.filter(d => d.pipeline_id === kbF);
+      const sm = {}; S.stages.forEach(s => { sm[s.id] = { stage: s, deals: [] }; });
+      deals.forEach(d => {
+        if (sm[d.stage_id]) sm[d.stage_id].deals.push(d);
+        else { const k = '_' + d.stage_id; if (!sm[k]) sm[k] = { stage: { id: d.stage_id, name: 'Etapa ' + d.stage_id, order_nr: 999 }, deals: [] }; sm[k].deals.push(d); }
+      });
+      const cols = Object.values(sm).filter(c => c.deals.length > 0).sort((a, b) => (a.stage.order_nr || 0) - (b.stage.order_nr || 0));
+      const board = document.getElementById('kb-board');
+      if (!cols.length) { board.innerHTML = '<div class="empty-st"><div class="empty-ic">📭</div><div class="empty-ti">Funnel vacío</div><div class="empty-su">No hay deals en estas etapas</div></div>'; return; }
+      board.innerHTML = cols.map(col => {
+        const tot = col.deals.reduce((s, d) => s + toA(d), 0);
+        return `<div class="kb-col">
+      <div class="kb-ch"><div class="kb-cn">${col.stage.name}</div><div class="kb-cm">${col.deals.length} · ${$A(tot)}</div></div>
+      <div class="kb-cards">${col.deals.sort((a, b) => toA(b) - toA(a)).map(d => {
+          const days = dt(d.expected_close_date);
+          const cls = days !== null && days < 0 ? 'ov' : days !== null && days <= 7 ? 'hot' : '';
+          const st = actSt(d); const last = d.last_activity_date ? dt(d.last_activity_date) : null;
+          let dot = '', txt = '';
+          if (last === null) { dot = '#ef4444'; txt = 'Sin act.'; } else { const since = Math.abs(last); if (since < 7) dot = '#22c55e'; else if (since <= 14) dot = '#f59e0b'; else { dot = '#ef4444'; txt = `${since}d sin act.`; } }
+          const ai = `<div style="display:flex;align-items:center;gap:4px"><div style="width:8px;height:8px;border-radius:50%;background:${dot}"></div>${txt ? `<span style="font-size:9px;color:#ef4444;font-weight:700">${txt}</span>` : ''}</div>`;
+          const cm = d.expected_close_date && new Date(d.expected_close_date).getMonth() === new Date().getMonth() ? `<span class="chip cb" style="margin-left:4px">📅 Cierra este mes</span>` : '';
+          return `<div class="kbc ${cls}">
+          <div class="kbc-tp"><div class="kbc-ti">${d.title || '—'}${cm}</div>${pp(d.pipeline_id)}</div>
+          <div class="kbc-or">${d.org_name || 'Sin org'}</div>
+          <div class="kbc-ft" style="margin:5px 0"><span class="kbc-vl" style="font-size:13px;font-weight:800">${fc(d)}</span><span class="kbc-dt" style="color:#9aa1b1">${d.expected_close_date ? fd(d.expected_close_date) : '—'}</span></div>
+          <div class="kbc-bt"><span>${rAva(gv(d))}</span>${ai}</div>
+        </div>`;
+        }).join('')}</div>
+    </div>`;
+      }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // WON DEALS
+    // ════════════════════════════════════════
+    function renderWon() {
+      const mo = parseInt(document.getElementById('f-m').value) || 0;
+      const yr = parseInt(document.getElementById('f-y').value) || 0;
+      const vn = document.getElementById('f-v').value;
+      const pf = document.getElementById('f-p').value;
+      const sr = document.getElementById('f-s').value.toLowerCase();
+      const now = new Date(), cy = now.getFullYear(), cq = Math.floor(now.getMonth() / 3), cm = now.getMonth();
+      const dY = yr || cy, dM = mo || (cm + 1);
+
+      let fl = S.won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        if (yr && w.getFullYear() !== yr) return false;
+        if (mo && (w.getMonth() + 1) !== mo) return false;
+        if (vn && gv(d) !== vn) return false;
+        if (pf && String(d.pipeline_id) !== pf) return false;
+        if (sr && !(d.title || '').toLowerCase().includes(sr) && !(d.org_name || '').toLowerCase().includes(sr)) return false;
+        return true;
+      });
+
+      const ytd = S.won.filter(d => d.won_time && new Date(d.won_time).getFullYear() === dY);
+      const qd = ytd.filter(d => Math.floor(new Date(d.won_time).getMonth() / 3) === cq);
+      const md = S.won.filter(d => { if (!d.won_time) return false; const w = new Date(d.won_time); return (w.getMonth() + 1) === dM && w.getFullYear() === dY; });
+      const aW = md.filter(d => d.pipeline_id === 151);
+      const uW = md.filter(d => d.pipeline_id === 149);
+      const pW = md.filter(d => d.pipeline_id === 159);
+
+      document.getElementById('kpi-won').innerHTML = `
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico" style="background:#f1f5f9;color:#475569"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div><div class="kpi-lb">Mes ${dM}/${dY}</div><div class="kpi-vl">${md.length}</div><div class="kpi-trend">${$A(sumA(md))}</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico" style="background:#f1f5f9;color:#475569"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div><div class="kpi-lb">Q${cq + 1} ${dY}</div><div class="kpi-vl">${qd.length}</div><div class="kpi-trend">${$A(sumA(qd))}</div></div>
+    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico" style="background:#f1f5f9;color:#475569"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="kpi-lb">YTD ${dY}</div><div class="kpi-vl">${ytd.length}</div><div class="kpi-trend">${$A(sumA(ytd))}</div></div>
+  `;
+
+      const tb = document.getElementById('tbl-won');
+      if (!fl.length) { tb.innerHTML = emptySt('🏆', 'Sin deals ganados', 'No hay comisiones en este rango'); return; }
+      tb.innerHTML = fl.sort((a, b) => new Date(b.won_time) - new Date(a.won_time)).map(d => `<tr>
+    <td class="tb">${d.title || '—'}</td>
+    <td class="col-hide">${d.org_name || '—'}</td>
+    <td><span class="tag tb2">${gv(d)}</span></td>
+    <td class="col-hide" style="color:#6c7585">${d.user_id?.name || '—'}</td>
+    <td class="col-hide">${pp(d.pipeline_id)}</td>
+    <td class="tm" class="ar-vl">${fc(d)}</td>
+    <td class="tm">${fd(d.won_time)}</td>
+  </tr>`).join('');
+    }
+
+    // ════════════════════════════════════════
+    // ACTIVITIES
+    // ════════════════════════════════════════
+
+
+    // ════════════════════════════════════════
+    // LOADING
+    // ════════════════════════════════════════
+    function setRef(l) { const b = document.getElementById('ref-btn'); b.disabled = l; b.textContent = l ? '⏳ Cargando…' : '↻ Actualizar'; }
+    function showLd(t) { document.getElementById('ld').classList.add('show'); setLd(t); }
+    function hideLd() { document.getElementById('ld').classList.remove('show'); }
+    function setLd(t) { document.getElementById('ld-tx').textContent = t; }
+  </script>
+</body>
+
+</html>
