@@ -1896,6 +1896,26 @@
         left: 200%
       }
     }
+
+    /* FC PERIOD BAR — MOBILE */
+    @media (max-width: 768px) {
+      #fc-period-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      #fc-sel-month,
+      #fc-sel-q,
+      #fc-sel-range {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      #fc-period-bar select {
+        font-size: 14px;
+        min-height: 36px;
+      }
+    }
   </style>
 </head>
 
@@ -2079,10 +2099,124 @@
 
       <!-- FORECAST -->
       <div class="page" id="page-forecast">
-        <div class="ptabs" id="fc-tabs">
-          <button class="ptab on" onclick="setFcP('month',this)">Este mes</button>
-          <button class="ptab" onclick="setFcP('next',this)">Próximo mes</button>
-          <button class="ptab" onclick="setFcP('quarter',this)">Este trimestre</button>
+        <div id="fc-period-bar" style="display:flex;align-items:center;
+          gap:10px;margin-bottom:20px;flex-wrap:wrap;
+          background:#f8f9fb;border:1px solid #e4e7ec;
+          border-radius:10px;padding:12px 16px">
+
+          <span style="font-size:11px;font-weight:700;color:#6c7585;
+            text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">
+            Ver período:
+          </span>
+
+          <!-- Tipo de período -->
+          <select id="fc-period-type" onchange="onFcPeriodChange()"
+            style="padding:7px 11px;background:#fff;
+            border:1.5px solid #e4e7ec;border-radius:8px;
+            color:#0a0d14;font-size:12px;font-weight:600;
+            outline:none;cursor:pointer;font-family:inherit">
+            <option value="month">Mes específico</option>
+            <option value="ytd">Acumulado YTD</option>
+            <option value="q">Trimestre</option>
+            <option value="range">Rango de meses</option>
+          </select>
+
+          <!-- OPCIÓN: Mes específico -->
+          <div id="fc-sel-month" style="display:flex;gap:8px;align-items:center">
+            <select id="fc-month" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
+            </select>
+            <select id="fc-year" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <!-- Poblado por JS -->
+            </select>
+          </div>
+
+          <!-- OPCIÓN: Trimestre -->
+          <div id="fc-sel-q" style="display:none;gap:8px;align-items:center">
+            <select id="fc-q" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Q1 (Ene-Mar)</option>
+              <option value="1">Q2 (Abr-Jun)</option>
+              <option value="2">Q3 (Jul-Sep)</option>
+              <option value="3">Q4 (Oct-Dic)</option>
+            </select>
+            <select id="fc-q-year" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <!-- Poblado por JS -->
+            </select>
+          </div>
+
+          <!-- OPCIÓN: Rango de meses -->
+          <div id="fc-sel-range" style="display:none;gap:8px;
+            align-items:center;flex-wrap:wrap">
+            <span style="font-size:11px;color:#6c7585">Desde:</span>
+            <select id="fc-from-month" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Enero</option><option value="1">Febrero</option>
+              <option value="2">Marzo</option><option value="3">Abril</option>
+              <option value="4">Mayo</option><option value="5">Junio</option>
+              <option value="6">Julio</option><option value="7">Agosto</option>
+              <option value="8">Septiembre</option><option value="9">Octubre</option>
+              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+            </select>
+            <select id="fc-from-year" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <!-- Poblado por JS -->
+            </select>
+            <span style="font-size:13px;color:#9aa1b1">→</span>
+            <span style="font-size:11px;color:#6c7585">Hasta:</span>
+            <select id="fc-to-month" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Enero</option><option value="1">Febrero</option>
+              <option value="2">Marzo</option><option value="3">Abril</option>
+              <option value="4">Mayo</option><option value="5">Junio</option>
+              <option value="6">Julio</option><option value="7">Agosto</option>
+              <option value="8">Septiembre</option><option value="9">Octubre</option>
+              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+            </select>
+            <select id="fc-to-year" onchange="renderForecast()"
+              style="padding:7px 11px;background:#fff;
+              border:1.5px solid #e4e7ec;border-radius:8px;
+              color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <!-- Poblado por JS -->
+            </select>
+          </div>
+
+          <!-- Chip con el período activo -->
+          <span id="fc-period-chip"
+            style="display:inline-flex;align-items:center;padding:4px 10px;
+            border-radius:20px;font-size:10px;font-weight:700;
+            background:#eff4ff;color:#1a56db;
+            font-family:'JetBrains Mono',monospace;white-space:nowrap">
+          </span>
+
         </div>
         <!-- KPIs -->
         <div class="kpi-grid" id="kpi-fc" style="grid-template-columns:repeat(3,1fr)"></div>
@@ -2447,6 +2581,8 @@
       buildYSel(now.getFullYear());
       document.getElementById('obj-period').textContent =
         now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+      initFcYearSelects();
+      onFcPeriodChange();
     });
     function buildYSel(y) {
       const s = document.getElementById('f-y');
@@ -3068,23 +3204,93 @@
     // ════════════════════════════════════════
     // FORECAST
     // ════════════════════════════════════════
-    function setFcP(p, btn) {
-      fcP = p; document.querySelectorAll('.ptab').forEach(b => b.classList.remove('on')); btn.classList.add('on'); renderForecast();
+    // setFcP mantenida para retrocompatibilidad (no usada activamente)
+    function setFcP(p, btn) { renderForecast(); }
+
+    // ── Poblar selects de año para el forecast ──
+    function initFcYearSelects() {
+      const now = new Date();
+      const cy  = now.getFullYear();
+      const years = [cy + 1, cy, cy - 1, cy - 2];
+      const opts  = years.map(y => `<option value="${y}">${y}</option>`).join('');
+      ['fc-year','fc-q-year','fc-from-year','fc-to-year'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = opts;
+      });
+      // DEFAULT: mes actual, año actual
+      const fcMonth = document.getElementById('fc-month');
+      const fcYear  = document.getElementById('fc-year');
+      if (fcMonth) fcMonth.value = now.getMonth();
+      if (fcYear)  fcYear.value  = cy;
+      // Trimestre actual por default
+      const fcQ     = document.getElementById('fc-q');
+      const fcQYear = document.getElementById('fc-q-year');
+      if (fcQ)     fcQ.value     = Math.floor(now.getMonth() / 3);
+      if (fcQYear) fcQYear.value = cy;
+      // Rango: desde mes actual hasta 2 meses adelante por default
+      const fcFromM = document.getElementById('fc-from-month');
+      const fcFromY = document.getElementById('fc-from-year');
+      const fcToM   = document.getElementById('fc-to-month');
+      const fcToY   = document.getElementById('fc-to-year');
+      if (fcFromM) fcFromM.value = now.getMonth();
+      if (fcFromY) fcFromY.value = cy;
+      const toDate  = new Date(cy, now.getMonth() + 2, 1);
+      if (fcToM)   fcToM.value   = toDate.getMonth();
+      if (fcToY)   fcToY.value   = toDate.getFullYear();
     }
-    function getRange(p) {
-      const now = new Date(), y = now.getFullYear(), m = now.getMonth(), q = Math.floor(m / 3);
-      if (p === 'month') return { s: new Date(y, m, 1), e: new Date(y, m + 1, 0), lbl: now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) };
-      if (p === 'next') { const nm = m + 1 === 12 ? 0 : m + 1, ny = m + 1 === 12 ? y + 1 : y; return { s: new Date(ny, nm, 1), e: new Date(ny, nm + 1, 0), lbl: new Date(ny, nm, 1).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) }; }
-      return { s: new Date(y, q * 3, 1), e: new Date(y, q * 3 + 3, 0), lbl: `Q${q + 1} ${y}` };
+
+    // ── Mostrar/ocultar selectores según tipo elegido ──
+    function onFcPeriodChange() {
+      const type = document.getElementById('fc-period-type')?.value || 'month';
+      document.getElementById('fc-sel-month').style.display  = type === 'month' ? 'flex' : 'none';
+      document.getElementById('fc-sel-q').style.display      = type === 'q'     ? 'flex' : 'none';
+      document.getElementById('fc-sel-range').style.display  = type === 'range' ? 'flex' : 'none';
+      renderForecast();
+    }
+
+    // ── getFcRange(): reemplaza getRange(fcP) ──
+    function getFcRange() {
+      const type = document.getElementById('fc-period-type')?.value || 'month';
+      const now  = new Date();
+      const cy   = now.getFullYear();
+      const MN   = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+      if (type === 'month') {
+        const m = parseInt(document.getElementById('fc-month')?.value ?? now.getMonth());
+        const y = parseInt(document.getElementById('fc-year')?.value ?? cy);
+        return { s: new Date(y, m, 1), e: new Date(y, m + 1, 0, 23, 59, 59), label: `${MN[m]} ${y}` };
+      }
+      if (type === 'ytd') {
+        return { s: new Date(cy, 0, 1), e: new Date(cy, 11, 31, 23, 59, 59), label: `YTD ${cy}` };
+      }
+      if (type === 'q') {
+        const q = parseInt(document.getElementById('fc-q')?.value ?? 0);
+        const y = parseInt(document.getElementById('fc-q-year')?.value ?? cy);
+        return { s: new Date(y, q * 3, 1), e: new Date(y, q * 3 + 3, 0, 23, 59, 59), label: `Q${q + 1} ${y}` };
+      }
+      if (type === 'range') {
+        const fm = parseInt(document.getElementById('fc-from-month')?.value ?? 0);
+        const fy = parseInt(document.getElementById('fc-from-year')?.value ?? cy);
+        const tm = parseInt(document.getElementById('fc-to-month')?.value ?? 11);
+        const ty = parseInt(document.getElementById('fc-to-year')?.value ?? cy);
+        return { s: new Date(fy, fm, 1), e: new Date(ty, tm + 1, 0, 23, 59, 59), label: `${MN[fm]} ${fy} → ${MN[tm]} ${ty}` };
+      }
+      // Fallback: mes actual
+      const m = now.getMonth();
+      return { s: new Date(cy, m, 1), e: new Date(cy, m + 1, 0, 23, 59, 59), label: MN[m] + ' ' + cy };
     }
     function renderForecast() {
-      const { s, e, lbl } = getRange(fcP);
-      document.getElementById('top-p').textContent = `Deals proyectados para ${lbl}`;
-      const [cyNum, cmNum] = [s.getFullYear(), s.getMonth() + 1];
-      const inR = d => { 
-        if (!d.expected_close_date) return false; 
-        const pts = d.expected_close_date.split('-');
-        return parseInt(pts[0]) === cyNum && parseInt(pts[1]) === cmNum;
+      const { s, e, label } = getFcRange();
+      // Actualizar chip de período
+      const fcChip = document.getElementById('fc-period-chip');
+      if (fcChip) fcChip.textContent = label;
+      // Actualizar subtítulo topbar
+      const topP = document.getElementById('top-p');
+      if (topP) topP.textContent = `Deals proyectados — ${label}`;
+      const inR = d => {
+        if (!d.expected_close_date) return false;
+        const c = new Date(d.expected_close_date);
+        return c >= s && c <= e;
       };
       const deals = S.open.filter(inR);
 
@@ -3169,7 +3375,7 @@
     }
 
     function renderFcTable() {
-      const { s, e } = getRange(fcP);
+      const { s, e } = getFcRange();
       const pf = document.getElementById('fc-pf')?.value;
       const vf = document.getElementById('fc-vf')?.value;
       const af = document.getElementById('fc-af')?.value;
