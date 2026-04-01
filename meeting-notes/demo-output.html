@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen de Reuniones</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; color: #222; }
+  .container { max-width: 720px; margin: 0 auto; }
+  .header { background: #0f172a; color: #fff; padding: 28px 32px; border-radius: 12px 12px 0 0; }
+  .header h1 { margin: 0 0 4px 0; font-size: 22px; }
+  .header p { margin: 0; color: #94a3b8; font-size: 14px; }
+  .logo { font-weight: 800; color: #38bdf8; letter-spacing: -0.5px; }
+  .meeting-card { background: #fff; border-radius: 0; border-left: 4px solid #38bdf8; margin-bottom: 4px; padding: 24px 32px; }
+  .meeting-card:last-child { border-radius: 0 0 12px 12px; }
+  .meeting-title { font-size: 18px; font-weight: 700; color: #0f172a; margin: 0 0 4px 0; }
+  .meeting-meta { color: #64748b; font-size: 13px; margin-bottom: 20px; }
+  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #475569; margin: 18px 0 8px 0; display: flex; align-items: center; gap: 6px; }
+  .section-title span { font-size: 16px; }
+  .participant-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 4px; }
+  .participant-table th { text-align: left; padding: 6px 10px; background: #f1f5f9; color: #475569; font-weight: 600; font-size: 12px; }
+  .participant-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; }
+  .participant-table tr:last-child td { border-bottom: none; }
+  .badge-nubceo { background: #dbeafe; color: #1d4ed8; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-client { background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .bar-container { height: 8px; background: #e2e8f0; border-radius: 4px; min-width: 60px; display: inline-block; vertical-align: middle; margin-left: 8px; }
+  .bar-fill { height: 100%; border-radius: 4px; background: #38bdf8; }
+  .bar-fill.nubceo { background: #3b82f6; }
+  .list-items { list-style: none; padding: 0; margin: 0; }
+  .list-items li { padding: 7px 0 7px 20px; position: relative; font-size: 14px; border-bottom: 1px solid #f8fafc; line-height: 1.5; }
+  .list-items li:last-child { border-bottom: none; }
+  .list-items li::before { content: "•"; position: absolute; left: 0; color: #38bdf8; font-weight: 700; }
+  .list-items.questions li::before { content: "?"; color: #8b5cf6; }
+  .list-items.pain li::before { content: "!"; color: #ef4444; }
+  .next-steps-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .next-steps-table th { text-align: left; padding: 6px 10px; background: #f1f5f9; color: #475569; font-weight: 600; font-size: 12px; }
+  .next-steps-table td { padding: 8px 10px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  .next-steps-table tr:last-child td { border-bottom: none; }
+  .resp-nubceo { color: #1d4ed8; font-weight: 600; }
+  .resp-client { color: #15803d; font-weight: 600; }
+  .divider { border: none; border-top: 2px solid #e2e8f0; margin: 0; }
+  .footer { background: #0f172a; color: #475569; padding: 20px 32px; font-size: 12px; border-radius: 0 0 12px 12px; text-align: center; }
+  .footer a { color: #38bdf8; text-decoration: none; }
+  .error-card { background: #fff5f5; border-left: 4px solid #ef4444; padding: 16px 24px; margin-bottom: 4px; font-size: 14px; color: #7f1d1d; }
+  .no-data { color: #94a3b8; font-style: italic; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1><span class="logo">Nubceo</span> · Resumen de Reuniones</h1>
+    <p>Martes, 1 de abril de 2025 · 2 reuniónes con clientes</p>
+  </div>
+
+  
+  <hr class="divider">
+  <div class="meeting-card">
+    <div class="meeting-title">📋 Demo SRL · Presentación de la plataforma Nubceo</div>
+    <div class="meeting-meta">
+      Recibido: 10:30 a. m. hs · Duración: 42 min
+    </div>
+
+    <!-- PARTICIPANTES -->
+    <div class="section-title"><span>⏱</span> Tiempo de participación</div>
+    <table class="participant-table">
+    <thead><tr><th>Nombre</th><th>Empresa</th><th>Participación</th></tr></thead>
+    <tbody><tr>
+      <td><strong>Lucía Fernández</strong></td>
+      <td><span class="badge-nubceo">Nubceo</span></td>
+      <td>18 min (43%) <div class="bar-container"><div class="bar-fill nubceo" style="width:43%"></div></div></td>
+    </tr><tr>
+      <td><strong>Carlos Méndez</strong></td>
+      <td><span class="badge-client">Cliente</span></td>
+      <td>21 min (50%) <div class="bar-container"><div class="bar-fill " style="width:50%"></div></div></td>
+    </tr><tr>
+      <td><strong>Ana Torres</strong></td>
+      <td><span class="badge-client">Cliente</span></td>
+      <td>3 min (7%) <div class="bar-container"><div class="bar-fill " style="width:7%"></div></div></td>
+    </tr></tbody>
+  </table>
+
+    <!-- PREGUNTAS NUBCEO -->
+    <div class="section-title"><span>❓</span> Preguntas realizadas por Nubceo al cliente</div>
+    <ul class="list-items questions"><li>¿Cuántas sucursales o puntos de venta manejan actualmente?</li><li>¿Cómo están realizando hoy la conciliación de cobros con tarjetas?</li><li>¿Tienen integración con algún sistema de facturación o ERP?</li><li>¿Cuánto tiempo dedica el equipo contable a la conciliación manual por mes?</li><li>¿Han tenido problemas de diferencias con las liquidadoras de tarjetas?</li></ul>
+
+    <!-- PUNTOS DE DOLOR -->
+    <div class="section-title"><span>🔴</span> Puntos de dolor del cliente</div>
+    <ul class="list-items pain"><li>La conciliación manual les lleva entre 3 y 4 días al mes y genera errores frecuentes</li><li>No tienen visibilidad en tiempo real de los cobros: se enteran de las liquidaciones con días de retraso</li><li>Las diferencias con las tarjetas les generaron pérdidas no detectadas a tiempo en el último trimestre</li><li>El sistema actual no soporta múltiples monedas (tienen operaciones en USD)</li></ul>
+
+    <!-- PRÓXIMOS PASOS -->
+    <div class="section-title"><span>✅</span> Próximos pasos</div>
+    <table class="next-steps-table">
+    <thead><tr><th>Acción</th><th>Responsable</th><th>Fecha límite</th></tr></thead>
+    <tbody><tr>
+      <td>Enviar propuesta comercial con el plan que incluye hasta 5 sucursales</td>
+      <td><span class="resp-nubceo">Nubceo - Lucía Fernández</span></td>
+      <td><small style="color:#94a3b8">viernes 4 de abril</small></td>
+    </tr><tr>
+      <td>Compartir acceso de prueba al módulo de conciliación</td>
+      <td><span class="resp-nubceo">Nubceo</span></td>
+      <td><small style="color:#94a3b8">esta semana</small></td>
+    </tr><tr>
+      <td>Consultar con el equipo de IT si tienen API disponible para integrar con ERP</td>
+      <td><span class="resp-client">Carlos Méndez (Demo SRL)</span></td>
+      <td><span class="no-data">-</span></td>
+    </tr><tr>
+      <td>Agendar reunión de seguimiento con gerente financiero incluido</td>
+      <td><span class="resp-client">Carlos Méndez (Demo SRL)</span></td>
+      <td><small style="color:#94a3b8">semana del 7 de abril</small></td>
+    </tr></tbody>
+  </table>
+
+    
+    <div class="section-title"><span>💬</span> Notas adicionales</div>
+    <p style="font-size:14px; color:#475569; margin:4px 0;">El cliente mostró alto interés en el módulo de alertas automáticas. Mencionó que evaluán también a un competidor (no especificó cuál).</p>
+    
+  </div>
+  <hr class="divider">
+  <div class="meeting-card">
+    <div class="meeting-title">📋 Retail XYZ · Seguimiento de propuesta comercial</div>
+    <div class="meeting-meta">
+      Recibido: 03:00 p. m. hs · Duración: 28 min
+    </div>
+
+    <!-- PARTICIPANTES -->
+    <div class="section-title"><span>⏱</span> Tiempo de participación</div>
+    <table class="participant-table">
+    <thead><tr><th>Nombre</th><th>Empresa</th><th>Participación</th></tr></thead>
+    <tbody><tr>
+      <td><strong>Martín Sosa</strong></td>
+      <td><span class="badge-nubceo">Nubceo</span></td>
+      <td>14 min (50%) <div class="bar-container"><div class="bar-fill nubceo" style="width:50%"></div></div></td>
+    </tr><tr>
+      <td><strong>Roberto Paz</strong></td>
+      <td><span class="badge-client">Cliente</span></td>
+      <td>14 min (50%) <div class="bar-container"><div class="bar-fill " style="width:50%"></div></div></td>
+    </tr></tbody>
+  </table>
+
+    <!-- PREGUNTAS NUBCEO -->
+    <div class="section-title"><span>❓</span> Preguntas realizadas por Nubceo al cliente</div>
+    <ul class="list-items questions"><li>¿Pudieron revisar la propuesta que enviamos la semana pasada?</li><li>¿Hay algún punto del pricing que necesiten ajustar?</li><li>¿Cuándo estarían en condiciones de avanzar con la firma del contrato?</li></ul>
+
+    <!-- PUNTOS DE DOLOR -->
+    <div class="section-title"><span>🔴</span> Puntos de dolor del cliente</div>
+    <ul class="list-items pain"><li>El cliente necesita aprobación de casa matriz (Brasil) antes de firmar, lo que retrasa el proceso</li><li>Tienen dudas sobre el soporte post-implementación, quieren SLA por escrito</li></ul>
+
+    <!-- PRÓXIMOS PASOS -->
+    <div class="section-title"><span>✅</span> Próximos pasos</div>
+    <table class="next-steps-table">
+    <thead><tr><th>Acción</th><th>Responsable</th><th>Fecha límite</th></tr></thead>
+    <tbody><tr>
+      <td>Agregar cláusula de SLA al contrato (tiempo de respuesta máximo 4 hs)</td>
+      <td><span class="resp-nubceo">Nubceo</span></td>
+      <td><small style="color:#94a3b8">lunes 7 de abril</small></td>
+    </tr><tr>
+      <td>Elevar aprobación a casa matriz con resumen ejecutivo de la propuesta</td>
+      <td><span class="resp-client">Roberto Paz (Retail XYZ)</span></td>
+      <td><span class="no-data">-</span></td>
+    </tr></tbody>
+  </table>
+
+    
+  </div>
+
+  <div class="footer">
+    Generado automáticamente por el sistema de notas de reuniones de Nubceo.<br>
+    Fuente: <strong>Google Meet + Gemini AI</strong> · Análisis: <strong>Claude AI</strong>
+  </div>
+
+</div>
+</body>
+</html>
