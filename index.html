@@ -23,7 +23,7 @@
       --tx2: #3d4451;
       --mt: #6c7585;
       --mt2: #9aa1b1;
-      --bl: #1a56db;
+      --bl: #0f6af1;
       --bl-l: #eff4ff;
       --bl-m: #c7d7fd;
       --gn: #027a48;
@@ -556,6 +556,7 @@
       border: 1px solid var(--bdr);
       border-radius: var(--r);
       overflow: hidden;
+      position: relative;
       margin-bottom: 16px
     }
 
@@ -1293,9 +1294,35 @@
       border-radius: 4px
     }
 
-    /* MOBILE FIRST OVERRIDES */
-    #bottom-nav {
+    #mob-header {
+      height: 52px;
+      background: var(--sur);
+      border-bottom: 1px solid var(--bdr);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 900;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    }
+
+    .mh-l {
       display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mh-r {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #bottom-nav {
+      display: none;
       align-items: center;
       justify-content: space-around;
       height: 60px;
@@ -1348,50 +1375,36 @@
       display: block;
     }
 
-    #mob-header {
-      height: 52px;
-      background: var(--sur);
-      border-bottom: 1px solid var(--bdr);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      position: fixed;
-      top: 0;
-      width: 100%;
-      z-index: 900;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-    }
+    @media (max-width: 768px) {
+      body {
+        display: block;
+        overflow: hidden;
+      }
 
-    .mh-l {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+      #sb {
+        display: none !important;
+      }
 
-    .mh-r {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+      #top {
+        display: none !important;
+      }
 
-    #sb,
-    #top {
-      display: none;
-    }
+      #main {
+        height: 100vh;
+        padding-top: 52px;
+        padding-bottom: 60px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+      }
 
-    body {
-      display: block;
-      overflow: hidden;
-    }
+      #mob-header {
+        display: flex !important;
+      }
 
-    #main {
-      height: 100vh;
-      padding-top: 52px;
-      padding-bottom: 60px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
+      #bottom-nav {
+        display: flex !important;
+      }
     }
 
     #cnt {
@@ -1786,10 +1799,11 @@
       background: #fafafa;
     }
 
-    table thead th {
+    .tw table thead th {
       position: sticky;
       top: 0;
-      z-index: 1;
+      z-index: 2;
+      background: var(--sur2);
     }
 
     th.ar,
@@ -1905,12 +1919,14 @@
         gap: 8px;
         padding: 10px 12px;
       }
+
       #fc-sel-month,
       #fc-sel-q,
       #fc-sel-range {
         flex-wrap: wrap;
         gap: 6px;
       }
+
       #fc-period-bar select {
         font-size: 14px;
         min-height: 36px;
@@ -2071,6 +2087,106 @@
 
       <!-- RANKING -->
       <div class="page" id="page-ranking">
+        <div id="rk-period-bar" style="display:flex;align-items:center;
+          gap:10px;margin-bottom:16px;flex-wrap:wrap;
+          background:#f8f9fb;border:1px solid #e4e7ec;
+          border-radius:10px;padding:12px 16px">
+
+          <span style="font-size:11px;font-weight:700;color:#6c7585;
+            text-transform:uppercase;letter-spacing:.5px;white-space:nowrap">
+            Ver período:
+          </span>
+
+          <select id="rk-period-type" onchange="onRkPeriodChange()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+            border-radius:8px;color:#0a0d14;font-size:12px;font-weight:600;
+            outline:none;cursor:pointer;font-family:inherit">
+            <option value="month">Mes específico</option>
+            <option value="ytd">Acumulado YTD</option>
+            <option value="q">Trimestre</option>
+            <option value="range">Rango de meses</option>
+          </select>
+
+          <div id="rk-sel-month" style="display:flex;gap:8px;align-items:center">
+            <select id="rk-month" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
+            </select>
+            <select id="rk-year" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+            </select>
+          </div>
+
+          <div id="rk-sel-q" style="display:none;gap:8px;align-items:center">
+            <select id="rk-q" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Q1 (Ene-Mar)</option>
+              <option value="1">Q2 (Abr-Jun)</option>
+              <option value="2">Q3 (Jul-Sep)</option>
+              <option value="3">Q4 (Oct-Dic)</option>
+            </select>
+            <select id="rk-q-year" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+            </select>
+          </div>
+
+          <div id="rk-sel-range" style="display:none;gap:8px;
+            align-items:center;flex-wrap:wrap">
+            <span style="font-size:11px;color:#6c7585">Desde:</span>
+            <select id="rk-from-month" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Ene</option>
+              <option value="1">Feb</option>
+              <option value="2">Mar</option>
+              <option value="3">Abr</option>
+              <option value="4">May</option>
+              <option value="5">Jun</option>
+              <option value="6">Jul</option>
+              <option value="7">Ago</option>
+              <option value="8">Sep</option>
+              <option value="9">Oct</option>
+              <option value="10">Nov</option>
+              <option value="11">Dic</option>
+            </select>
+            <select id="rk-from-year" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+            </select>
+            <span style="font-size:11px;color:#6c7585">→ Hasta:</span>
+            <select id="rk-to-month" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+              <option value="0">Ene</option>
+              <option value="1">Feb</option>
+              <option value="2">Mar</option>
+              <option value="3">Abr</option>
+              <option value="4">May</option>
+              <option value="5">Jun</option>
+              <option value="6">Jul</option>
+              <option value="7">Ago</option>
+              <option value="8">Sep</option>
+              <option value="9">Oct</option>
+              <option value="10">Nov</option>
+              <option value="11">Dic</option>
+            </select>
+            <select id="rk-to-year" onchange="renderRanking()" style="padding:7px 10px;background:#fff;border:1.5px solid #e4e7ec;
+              border-radius:8px;color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
+            </select>
+          </div>
+
+          <span id="rk-period-chip" style="display:inline-flex;padding:4px 10px;
+            border-radius:20px;font-size:10px;font-weight:700;
+            background:#eff4ff;color:#1a56db;
+            font-family:'JetBrains Mono',monospace;white-space:nowrap"></span>
+        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
             <div style="font-size:13px;font-weight:700;margin-bottom:3px">🎯 Objetivo mensual: <span
@@ -2110,8 +2226,7 @@
           </span>
 
           <!-- Tipo de período -->
-          <select id="fc-period-type" onchange="onFcPeriodChange()"
-            style="padding:7px 11px;background:#fff;
+          <select id="fc-period-type" onchange="onFcPeriodChange()" style="padding:7px 11px;background:#fff;
             border:1.5px solid #e4e7ec;border-radius:8px;
             color:#0a0d14;font-size:12px;font-weight:600;
             outline:none;cursor:pointer;font-family:inherit">
@@ -2123,8 +2238,7 @@
 
           <!-- OPCIÓN: Mes específico -->
           <div id="fc-sel-month" style="display:flex;gap:8px;align-items:center">
-            <select id="fc-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <option value="0">Enero</option>
@@ -2140,8 +2254,7 @@
               <option value="10">Noviembre</option>
               <option value="11">Diciembre</option>
             </select>
-            <select id="fc-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
@@ -2150,8 +2263,7 @@
 
           <!-- OPCIÓN: Trimestre -->
           <div id="fc-sel-q" style="display:none;gap:8px;align-items:center">
-            <select id="fc-q" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-q" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <option value="0">Q1 (Ene-Mar)</option>
@@ -2159,8 +2271,7 @@
               <option value="2">Q3 (Jul-Sep)</option>
               <option value="3">Q4 (Oct-Dic)</option>
             </select>
-            <select id="fc-q-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-q-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
@@ -2171,53 +2282,77 @@
           <div id="fc-sel-range" style="display:none;gap:8px;
             align-items:center;flex-wrap:wrap">
             <span style="font-size:11px;color:#6c7585">Desde:</span>
-            <select id="fc-from-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-from-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
-              <option value="0">Enero</option><option value="1">Febrero</option>
-              <option value="2">Marzo</option><option value="3">Abril</option>
-              <option value="4">Mayo</option><option value="5">Junio</option>
-              <option value="6">Julio</option><option value="7">Agosto</option>
-              <option value="8">Septiembre</option><option value="9">Octubre</option>
-              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
             </select>
-            <select id="fc-from-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-from-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
             </select>
             <span style="font-size:13px;color:#9aa1b1">→</span>
             <span style="font-size:11px;color:#6c7585">Hasta:</span>
-            <select id="fc-to-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-to-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
-              <option value="0">Enero</option><option value="1">Febrero</option>
-              <option value="2">Marzo</option><option value="3">Abril</option>
-              <option value="4">Mayo</option><option value="5">Junio</option>
-              <option value="6">Julio</option><option value="7">Agosto</option>
-              <option value="8">Septiembre</option><option value="9">Octubre</option>
-              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
             </select>
-            <select id="fc-to-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-to-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
             </select>
           </div>
 
-          <!-- Chip con el período activo -->
-          <span id="fc-period-chip"
-            style="display:inline-flex;align-items:center;padding:4px 10px;
-            border-radius:20px;font-size:10px;font-weight:700;
-            background:#eff4ff;color:#1a56db;
-            font-family:'JetBrains Mono',monospace;white-space:nowrap">
-          </span>
-
+          font-family:'JetBrains Mono',monospace;white-space:nowrap"></span>
         </div>
+
+        <div class="fr" style="margin-bottom:20px;padding:0 4px">
+          <label>Funnel:</label>
+          <select id="fc-pf" onchange="renderFcTable()">
+            <option value="">Todos</option>
+            <option value="151">🇦🇷 Argentina</option>
+            <option value="149">🇺🇾 Uruguay</option>
+            <option value="159">🇵🇾 Paraguay</option>
+          </select>
+          <label>Vendedor:</label>
+          <select id="fc-vf" onchange="renderFcTable()">
+            <option value="">Todos</option>
+            <!-- Poblado por JS -->
+          </select>
+          <label>Actividad:</label>
+          <select id="fc-af" onchange="renderFcTable()">
+            <option value="">Todos</option>
+            <option value="noact">Sin actividad</option>
+            <option value="over">Act. vencida</option>
+            <option value="ok">Al día</option>
+          </select>
+        </div>
+
         <!-- KPIs -->
         <div class="kpi-grid" id="kpi-fc" style="grid-template-columns:repeat(3,1fr)"></div>
 
@@ -2271,26 +2406,6 @@
         <div class="sh">
           <div class="sh-t">📋 Todos los deals del período</div>
         </div>
-        <div class="fr">
-          <label>Funnel:</label>
-          <select id="fc-pf" onchange="renderFcTable()">
-            <option value="">Todos</option>
-            <option value="151">🇦🇷 Argentina</option>
-            <option value="149">🇺🇾 Uruguay</option>
-            <option value="159">🇵🇾 Paraguay</option>
-          </select>
-          <label>Vendedor:</label>
-          <select id="fc-vf" onchange="renderFcTable()">
-            <option value="">Todos</option>
-          </select>
-          <label>Actividad:</label>
-          <select id="fc-af" onchange="renderFcTable()">
-            <option value="">Todos</option>
-            <option value="noact">Sin actividad</option>
-            <option value="over">Act. vencida</option>
-            <option value="ok">Al día</option>
-          </select>
-        </div>
         <div class="tw">
           <table>
             <thead>
@@ -2322,34 +2437,52 @@
           <!-- Forecast del mes en Desarrollo -->
           <div class="card">
             <div class="sh">
-              <div class="sh-t">📅 Forecast del Mes
-                <span class="chip cb" id="dev-fc-count">0 deals</span>
-              </div>
-            </div>
-            <!-- KPI total -->
-            <div id="dev-fc-total" style="font-size:20px;font-weight:800;
-              color:#027a48;font-family:'JetBrains Mono',monospace;
-              margin-bottom:14px"></div>
-            <!-- Tabla por vendedor -->
-            <div id="dev-fc-by-vendor"></div>
-          </div>
-
-          <!-- Ganados este mes en Desarrollo -->
-          <div class="card">
-            <div class="sh">
-              <div class="sh-t">🏆 Ganados Este Mes
+              <div class="sh-t" style="flex-wrap:wrap;gap:6px">
+                🏆 Ganados — Desarrollo
                 <span class="chip cg" id="dev-won-count">0 deals</span>
               </div>
             </div>
-            <div id="dev-won-total" style="font-size:20px;font-weight:800;
+            <div style="display:flex;gap:7px;align-items:center;
+              margin-bottom:12px;flex-wrap:wrap">
+              <select id="dev-won-type" onchange="renderDevWon()" style="padding:6px 9px;background:#fff;border:1.5px solid #e4e7ec;
+                border-radius:8px;color:#0a0d14;font-size:11px;font-weight:600;
+                outline:none;font-family:inherit">
+                <option value="month">Mes</option>
+                <option value="ytd">YTD</option>
+                <option value="q">Trimestre</option>
+              </select>
+              <select id="dev-won-month" onchange="renderDevWon()" style="padding:6px 9px;background:#fff;border:1.5px solid #e4e7ec;
+                border-radius:8px;color:#0a0d14;font-size:11px;outline:none;font-family:inherit">
+                <option value="0">Ene</option>
+                <option value="1">Feb</option>
+                <option value="2">Mar</option>
+                <option value="3">Abr</option>
+                <option value="4">May</option>
+                <option value="5">Jun</option>
+                <option value="6">Jul</option>
+                <option value="7">Ago</option>
+                <option value="8">Sep</option>
+                <option value="9">Oct</option>
+                <option value="10">Nov</option>
+                <option value="11">Dic</option>
+              </select>
+              <select id="dev-won-year" onchange="renderDevWon()" style="padding:6px 9px;background:#fff;border:1.5px solid #e4e7ec;
+                border-radius:8px;color:#0a0d14;font-size:11px;outline:none;font-family:inherit">
+              </select>
+              <span id="dev-won-chip" class="chip cg"></span>
+            </div>
+            <div id="dev-won-total" style="font-size:18px;font-weight:800;
               color:#027a48;font-family:'JetBrains Mono',monospace;
-              margin-bottom:14px"></div>
+              margin-bottom:10px"></div>
             <div class="tw">
               <table>
                 <thead>
                   <tr>
-                    <th>Deal</th><th>Organización</th>
-                    <th>Vendedor</th><th>Valor ARS</th><th>Fecha</th>
+                    <th>Deal</th>
+                    <th>Organización</th>
+                    <th>Vendedor</th>
+                    <th>Valor ARS</th>
+                    <th>Fecha</th>
                   </tr>
                 </thead>
                 <tbody id="tbl-dev-won"></tbody>
@@ -2357,44 +2490,29 @@
             </div>
           </div>
 
+          <!-- Forecast card can stay or move, but user said replace "Pipeline Abierto" with Kanban -->
+          <div class="card">
+            <div class="sh">
+              <div class="sh-t">📅 Forecast del Mes
+                <span class="chip cb" id="dev-fc-count">0 deals</span>
+              </div>
+            </div>
+            <div id="dev-fc-total" style="font-size:20px;font-weight:800;
+              color:#027a48;font-family:'JetBrains Mono',monospace;
+              margin-bottom:14px"></div>
+            <div id="dev-fc-by-vendor"></div>
+          </div>
+
         </div>
 
-        <!-- Tabla completa de deals abiertos en Desarrollo -->
         <div class="sh" style="margin-top:4px">
-          <div class="sh-t">🗂️ Pipeline Abierto — Desarrollo de Cuentas
-            <span class="chip cgr" id="dev-open-count">0</span>
+          <div class="sh-t">
+            🗂️ Kanban — Desarrollo de Cuentas
+            <span class="chip cgr" id="dev-kb-count">0</span>
+            <span class="chip cb" id="dev-kb-total"></span>
           </div>
         </div>
-        <div class="tw">
-          <table>
-            <thead>
-              <tr>
-                <th>Deal</th><th>Organización</th><th>Vendedor</th>
-                <th>Etapa</th><th>Valor ARS</th>
-                <th>Cierre Est.</th><th>Actividad</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-dev-open"></tbody>
-          </table>
-        </div>
-
-        <!-- Deals sin actividad en Desarrollo -->
-        <div class="sh">
-          <div class="sh-t">⚠️ Sin Actividad en Desarrollo
-            <span class="chip cr" id="dev-noact-count">0</span>
-          </div>
-        </div>
-        <div class="tw">
-          <table>
-            <thead>
-              <tr>
-                <th>Deal</th><th>Organización</th><th>Vendedor</th>
-                <th>Valor ARS</th><th>Etapa</th>
-              </tr>
-            </thead>
-            <tbody id="tbl-dev-noact"></tbody>
-          </table>
-        </div>
+        <div class="kb-board" id="dev-kb-board" style="min-height:280px"></div>
 
       </div>
 
@@ -2584,6 +2702,9 @@
         now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
       initFcYearSelects();
       onFcPeriodChange();
+      initRkYearSelects();
+      onRkPeriodChange();
+      initDevWonSelects();
     });
     function buildYSel(y) {
       const s = document.getElementById('f-y');
@@ -2642,7 +2763,7 @@
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = dedup(rawO.filter(d => d.pipeline_id === 158));
-        S.devWon  = rawW.filter(d => d.pipeline_id === 158);
+        S.devWon = rawW.filter(d => d.pipeline_id === 158);
 
         setLd('Tipo de cambio…');
         await loadFX();
@@ -2771,86 +2892,289 @@
     // ════════════════════════════════════════
     // DESARROLLO DE CUENTAS
     // ════════════════════════════════════════
-    function renderDev() {
-      const now = new Date();
-      const cm = now.getMonth();
-      const cy = now.getFullYear();
-      const cq = Math.floor(cm / 3);
+    function initDevWonSelects() {
+      const now = new Date(), cy = now.getFullYear();
+      const opts = [cy, cy - 1, cy - 2].map(y => `<option value="${y}">${y}</option>`).join('');
+      const el = document.getElementById('dev-won-year');
+      if (el) { el.innerHTML = opts; el.value = cy; }
+      const em = document.getElementById('dev-won-month');
+      if (em) em.value = now.getMonth();
+    }
 
-      const open  = S.devOpen;  // deals abiertos en pipeline 158
-      const won   = S.devWon;   // deals ganados en pipeline 158
+    function renderDevWon() {
+      const type = document.getElementById('dev-won-type')?.value || 'month';
+      const now = new Date(), cy = now.getFullYear();
+      const MN = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      let start, end, label;
+      if (type === 'ytd') {
+        start = new Date(cy, 0, 1); end = new Date(cy, 11, 31, 23, 59, 59); label = 'YTD ' + cy;
+      } else if (type === 'q') {
+        const q = Math.floor(now.getMonth() / 3);
+        start = new Date(cy, q * 3, 1); end = new Date(cy, q * 3 + 3, 0, 23, 59, 59);
+        label = `Q${q + 1} ${cy}`;
+      } else {
+        const m = parseInt(document.getElementById('dev-won-month')?.value ?? now.getMonth());
+        const y = parseInt(document.getElementById('dev-won-year')?.value ?? cy);
+        start = new Date(y, m, 1); end = new Date(y, m + 1, 0, 23, 59, 59); label = MN[m] + ' ' + y;
+      }
 
-      // Filtros temporales
-      const wonM = won.filter(d => {
+      const showMonth = type === 'month';
+      const dm = document.getElementById('dev-won-month');
+      const dy = document.getElementById('dev-won-year');
+      if (dm) dm.style.display = showMonth ? 'block' : 'none';
+      if (dy) dy.style.display = showMonth ? 'block' : 'none';
+
+      const chip = document.getElementById('dev-won-chip');
+      if (chip) chip.textContent = label;
+
+      const wonF = S.devWon.filter(d => {
         if (!d.won_time) return false;
-        const w = new Date(d.won_time);
-        return w.getMonth() === cm && w.getFullYear() === cy;
+        const w = new Date(d.won_time); return w >= start && w <= end;
       });
+
+      const countEl = document.getElementById('dev-won-count');
+      if (countEl) countEl.textContent = wonF.length + ' deals';
+      const totalEl = document.getElementById('dev-won-total');
+      if (totalEl) totalEl.textContent = $A(sumA(wonF));
+
+      const tb = document.getElementById('tbl-dev-won');
+      if (!tb) return;
+      tb.innerHTML = wonF.length
+        ? wonF.sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
+          .map(d => `<tr>
+              <td class="tb">${d.title || '—'}</td>
+              <td>${d.org_name || '—'}</td>
+              <td>${gv(d)}</td>
+              <td class="tm" style="color:#027a48;font-weight:700">${fc(d)}</td>
+              <td class="tm">${fd(d.won_time)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">Sin deals ganados en este período</td></tr>';
+    }
+
+    function buildDevKanban() {
+      const deals = S.devOpen;
+      const countEl = document.getElementById('dev-kb-count');
+      const totalEl = document.getElementById('dev-kb-total');
+      if (countEl) countEl.textContent = deals.length + ' deals';
+      if (totalEl) totalEl.textContent = sumA(deals) > 0 ? $A(sumA(deals)) : '';
+
+      const sm = {};
+      S.stages.forEach(s => { sm[s.id] = { stage: s, deals: [] }; });
+      deals.forEach(d => {
+        if (sm[d.stage_id]) sm[d.stage_id].deals.push(d);
+        else {
+          const k = '_' + d.stage_id;
+          if (!sm[k]) sm[k] = { stage: { id: d.stage_id, name: 'Etapa ' + d.stage_id, order_nr: 999 }, deals: [] };
+          sm[k].deals.push(d);
+        }
+      });
+      const cols = Object.values(sm)
+        .filter(c => c.deals.length > 0)
+        .sort((a, b) => (a.stage.order_nr || 0) - (b.stage.order_nr || 0));
+
+      const board = document.getElementById('dev-kb-board');
+      if (!board) return;
+      if (!cols.length) {
+        board.innerHTML = '<div class="empty-st"><div class="empty-ic">📭</div><div class="empty-ti">Sin deals abiertos</div></div>';
+        return;
+      }
+      board.innerHTML = cols.map(col => {
+        const tot = col.deals.reduce((s, d) => s + toA(d), 0);
+        return `<div class="kb-col">
+          <div class="kb-ch">
+            <div class="kb-cn">${col.stage.name}</div>
+            <div class="kb-cm">${col.deals.length} · ${$A(tot)}</div>
+          </div>
+          <div class="kb-cards">${col.deals.sort((a, b) => toA(b) - toA(a)).map(d => {
+          const days = dt(d.expected_close_date);
+          const cls = days !== null && days < 0 ? 'ov' : days !== null && days <= 7 ? 'hot' : '';
+          const dc = days !== null && days < 0 ? '#b42318' : days !== null && days <= 7 ? '#b54708' : '#9aa1b1';
+          const ast = actSt(d);
+          const ai = ast === 'noact'
+            ? '<span style="color:#b42318;font-size:9px;font-weight:700">⚠ Sin act.</span>'
+            : ast === 'over'
+              ? '<span style="color:#b54708;font-size:9px">🕐 Vencida</span>'
+              : '<span style="color:#027a48;font-size:9px">✓</span>';
+          return `<div class="kbc ${cls}">
+              <div class="kbc-tp"><div class="kbc-ti">${d.title || '—'}</div></div>
+              <div class="kbc-or">${d.org_name || 'Sin org'}</div>
+              <div class="kbc-ft">
+                <span class="kbc-vl">${fc(d)}</span>
+                <span class="kbc-dt" style="color:${dc}">
+                  ${d.expected_close_date ? fd(d.expected_close_date) : '—'}
+                </span>
+              </div>
+              <div class="kbc-bt"><span>${rAva(gv(d))}</span>${ai}</div>
+            </div>`;
+        }).join('')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function initDevWonSelects() {
+      const now = new Date(), cy = now.getFullYear();
+      const opts = [cy, cy - 1, cy - 2].map(y => `<option value="${y}">${y}</option>`).join('');
+      const el = document.getElementById('dev-won-year');
+      if (el) { el.innerHTML = opts; el.value = cy; }
+      const em = document.getElementById('dev-won-month');
+      if (em) em.value = now.getMonth();
+    }
+
+    function renderDevWon() {
+      const type = document.getElementById('dev-won-type')?.value || 'month';
+      const now = new Date(), cy = now.getFullYear();
+      const MN = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      let start, end, label;
+      if (type === 'ytd') {
+        start = new Date(cy, 0, 1); end = new Date(cy, 11, 31, 23, 59, 59); label = 'YTD ' + cy;
+      } else if (type === 'q') {
+        const q = Math.floor(now.getMonth() / 3);
+        start = new Date(cy, q * 3, 1); end = new Date(cy, q * 3 + 3, 0, 23, 59, 59);
+        label = `Q${q + 1} ${cy}`;
+      } else {
+        const m = parseInt(document.getElementById('dev-won-month')?.value ?? now.getMonth());
+        const y = parseInt(document.getElementById('dev-won-year')?.value ?? cy);
+        start = new Date(y, m, 1); end = new Date(y, m + 1, 0, 23, 59, 59); label = MN[m] + ' ' + y;
+      }
+
+      const showMonth = type === 'month';
+      const dm = document.getElementById('dev-won-month');
+      const dy = document.getElementById('dev-won-year');
+      if (dm) dm.style.display = showMonth ? 'block' : 'none';
+      if (dy) dy.style.display = showMonth ? 'block' : 'none';
+
+      const chip = document.getElementById('dev-won-chip');
+      if (chip) chip.textContent = label;
+
+      const wonF = S.devWon.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time); return w >= start && w <= end;
+      });
+
+      const countEl = document.getElementById('dev-won-count');
+      if (countEl) countEl.textContent = wonF.length + ' deals';
+      const totalEl = document.getElementById('dev-won-total');
+      if (totalEl) totalEl.textContent = $A(sumA(wonF));
+
+      const tb = document.getElementById('tbl-dev-won');
+      if (!tb) return;
+      tb.innerHTML = wonF.length
+        ? wonF.sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
+          .map(d => `<tr>
+              <td class="tb">${d.title || '—'}</td>
+              <td>${d.org_name || '—'}</td>
+              <td>${gv(d)}</td>
+              <td class="tm" style="color:#027a48;font-weight:700">${fc(d)}</td>
+              <td class="tm">${fd(d.won_time)}</td>
+            </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">Sin deals ganados en este período</td></tr>';
+    }
+
+    function buildDevKanban() {
+      const deals = S.devOpen;
+      const countEl = document.getElementById('dev-kb-count');
+      const totalEl = document.getElementById('dev-kb-total');
+      if (countEl) countEl.textContent = deals.length + ' deals';
+      if (totalEl) totalEl.textContent = sumA(deals) > 0 ? $A(sumA(deals)) : '';
+
+      const sm = {};
+      S.stages.forEach(s => { sm[s.id] = { stage: s, deals: [] }; });
+      deals.forEach(d => {
+        if (sm[d.stage_id]) sm[d.stage_id].deals.push(d);
+        else {
+          const k = '_' + d.stage_id;
+          if (!sm[k]) sm[k] = { stage: { id: d.stage_id, name: 'Etapa ' + d.stage_id, order_nr: 999 }, deals: [] };
+          sm[k].deals.push(d);
+        }
+      });
+      const cols = Object.values(sm)
+        .filter(c => c.deals.length > 0)
+        .sort((a, b) => (a.stage.order_nr || 0) - (b.stage.order_nr || 0));
+
+      const board = document.getElementById('dev-kb-board');
+      if (!board) return;
+      if (!cols.length) {
+        board.innerHTML = '<div class="empty-st"><div class="empty-ic">📭</div><div class="empty-ti">Sin deals abiertos</div></div>';
+        return;
+      }
+      board.innerHTML = cols.map(col => {
+        const tot = col.deals.reduce((s, d) => s + toA(d), 0);
+        return `<div class="kb-col">
+          <div class="kb-ch">
+            <div class="kb-cn">${col.stage.name}</div>
+            <div class="kb-cm">${col.deals.length} · ${$A(tot)}</div>
+          </div>
+          <div class="kb-cards">${col.deals.sort((a, b) => toA(b) - toA(a)).map(d => {
+          const days = dt(d.expected_close_date);
+          const cls = days !== null && days < 0 ? 'ov' : days !== null && days <= 7 ? 'hot' : '';
+          const dc = days !== null && days < 0 ? '#b42318' : days !== null && days <= 7 ? '#b54708' : '#9aa1b1';
+          const ast = actSt(d);
+          const ai = ast === 'noact'
+            ? '<span style="color:#b42318;font-size:9px;font-weight:700">⚠ Sin act.</span>'
+            : ast === 'over'
+              ? '<span style="color:#b54708;font-size:9px">🕐 Vencida</span>'
+              : '<span style="color:#027a48;font-size:9px">✓</span>';
+          return `<div class="kbc ${cls}">
+              <div class="kbc-tp"><div class="kbc-ti">${d.title || '—'}</div></div>
+              <div class="kbc-or">${d.org_name || 'Sin org'}</div>
+              <div class="kbc-ft">
+                <span class="kbc-vl">${fc(d)}</span>
+                <span class="kbc-dt" style="color:${dc}">
+                  ${d.expected_close_date ? fd(d.expected_close_date) : '—'}
+                </span>
+              </div>
+              <div class="kbc-bt"><span>${gv(d)}</span>${ai}</div>
+            </div>`;
+        }).join('')}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderDev() {
+      const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
+      const open = S.devOpen, won = S.devWon;
+
       const wonQ = won.filter(d => {
         if (!d.won_time) return false;
         const w = new Date(d.won_time);
         return Math.floor(w.getMonth() / 3) === cq && w.getFullYear() === cy;
       });
-      const wonY = won.filter(d =>
-        d.won_time && new Date(d.won_time).getFullYear() === cy
-      );
+      const wonY = won.filter(d => d.won_time && new Date(d.won_time).getFullYear() === cy);
 
-      // Deals que cierran este mes (forecast)
-      const marStart = new Date(cy, cm, 1);
-      const marEnd   = new Date(cy, cm + 1, 0);
+      const marStart = new Date(cy, cm, 1), marEnd = new Date(cy, cm + 1, 0);
       const forecast = open.filter(d => {
         if (!d.expected_close_date) return false;
         const c = new Date(d.expected_close_date);
         return c >= marStart && c <= marEnd;
       });
 
-      // Sin actividad
-      const noAct = open.filter(d => actSt(d) === 'noact');
-
-      // Alias local para toARS
-      const toARS = d => toA(d);
-
-      // ── KPIs ──
       document.getElementById('kpi-dev').innerHTML = `
-        <div class="kpi">
+        <div class="kpi" style="border-top-color:#pu">
           <div class="kpi-ico i-p">🔧</div>
           <div class="kpi-lb">Pipeline Abierto</div>
           <div class="kpi-vl">${open.length}</div>
           <div class="kpi-sb">${$A(sumA(open))}</div>
         </div>
-        <div class="kpi">
+        <div class="kpi" style="border-top-color:#bl">
           <div class="kpi-ico i-b">📅</div>
           <div class="kpi-lb">Forecast Mes</div>
           <div class="kpi-vl">${forecast.length}</div>
           <div class="kpi-sb">${$A(sumA(forecast))}</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-ico i-g">🏆</div>
-          <div class="kpi-lb">Ganados Mes</div>
-          <div class="kpi-vl">${wonM.length}</div>
-          <div class="kpi-sb">${$A(sumA(wonM))}</div>
-        </div>
-        <div class="kpi">
+        <div class="kpi" style="border-top-color:#gn">
           <div class="kpi-ico i-g">📈</div>
           <div class="kpi-lb">Revenue Q${cq + 1}</div>
           <div class="kpi-vl md">${$A(sumA(wonQ))}</div>
           <div class="kpi-sb">${wonQ.length} deals</div>
         </div>
-        <div class="kpi">
+        <div class="kpi" style="border-top-color:#or">
           <div class="kpi-ico i-o">🎯</div>
           <div class="kpi-lb">Revenue YTD</div>
           <div class="kpi-vl md">${$A(sumA(wonY))}</div>
           <div class="kpi-sb">${wonY.length} deals</div>
         </div>
-        <div class="kpi">
-          <div class="kpi-ico i-r">⚠️</div>
-          <div class="kpi-lb">Sin Actividad</div>
-          <div class="kpi-vl">${noAct.length}</div>
-          <div class="kpi-sb">De ${open.length} abiertos</div>
-        </div>
       `;
 
-      // ── FORECAST por vendedor ──
       document.getElementById('dev-fc-count').textContent = forecast.length + ' deals';
       document.getElementById('dev-fc-total').textContent = $A(sumA(forecast));
 
@@ -2859,7 +3183,7 @@
         const v = gv(d);
         if (!fcByV[v]) fcByV[v] = { n: 0, v: 0 };
         fcByV[v].n++;
-        fcByV[v].v += toARS(d);
+        fcByV[v].v += toA(d);
       });
       const fcRows = Object.entries(fcByV).sort((a, b) => b[1].v - a[1].v);
 
@@ -2877,77 +3201,8 @@
             </div>`).join('')
         : '<div class="empty">Sin deals con cierre este mes</div>';
 
-      // ── GANADOS MES ──
-      document.getElementById('dev-won-count').textContent = wonM.length + ' deals';
-      document.getElementById('dev-won-total').textContent = $A(sumA(wonM));
-
-      const tbWon = document.getElementById('tbl-dev-won');
-      tbWon.innerHTML = wonM.length
-        ? wonM
-            .sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
-            .map(d => `<tr>
-              <td class="tb">${d.title || '—'}</td>
-              <td>${d.org_name || '—'}</td>
-              <td>${gv(d)}</td>
-              <td class="tm" style="color:#027a48;font-weight:700">
-                ${fc(d)}
-              </td>
-              <td class="tm">${fd(d.won_time)}</td>
-            </tr>`).join('')
-        : '<tr><td colspan="5" class="empty">Sin deals ganados este mes</td></tr>';
-
-      // ── PIPELINE ABIERTO ──
-      document.getElementById('dev-open-count').textContent = open.length;
-      const tbOpen = document.getElementById('tbl-dev-open');
-      tbOpen.innerHTML = open.length
-        ? open
-            .sort((a, b) => toARS(b) - toARS(a))
-            .map(d => {
-              const days = dt(d.expected_close_date);
-              const ast  = actSt(d);
-              const dc   = days !== null && days < 0 ? '#b42318'
-                         : days !== null && days <= 7 ? '#b54708'
-                         : '#9aa1b1';
-              const at   = ast === 'noact'
-                ? '<span class="tag tr">⚠ Sin act.</span>'
-                : ast === 'over'
-                ? '<span class="tag ty">🕐 Vencida</span>'
-                : '<span class="tag tg">✓ Al día</span>';
-              return `<tr>
-                <td class="tb" style="max-width:160px;overflow:hidden;
-                  text-overflow:ellipsis;white-space:nowrap">
-                  ${d.title || '—'}
-                </td>
-                <td>${d.org_name || '—'}</td>
-                <td>${gv(d)}</td>
-                <td style="color:#6c7585;font-size:10px">${gsn(d)}</td>
-                <td class="tm" style="color:#027a48;font-weight:700">
-                  ${fc(d)}
-                </td>
-                <td class="tm" style="color:${dc}">
-                  ${d.expected_close_date ? fd(d.expected_close_date) : '—'}
-                </td>
-                <td>${at}</td>
-              </tr>`;
-            }).join('')
-        : '<tr><td colspan="7" class="empty">Sin deals abiertos</td></tr>';
-
-      // ── SIN ACTIVIDAD ──
-      document.getElementById('dev-noact-count').textContent = noAct.length;
-      const tbNoact = document.getElementById('tbl-dev-noact');
-      tbNoact.innerHTML = noAct.length
-        ? noAct
-            .sort((a, b) => toARS(b) - toARS(a))
-            .map(d => `<tr>
-              <td class="tb">${d.title || '—'}</td>
-              <td>${d.org_name || '—'}</td>
-              <td>${gv(d)}</td>
-              <td class="tm" style="color:#027a48;font-weight:700">
-                ${fc(d)}
-              </td>
-              <td style="color:#6c7585">${gsn(d)}</td>
-            </tr>`).join('')
-        : '<tr><td colspan="5" class="empty">✅ Todos tienen actividad</td></tr>';
+      renderDevWon();
+      buildDevKanban();
     }
 
     // ════════════════════════════════════════
@@ -3079,7 +3334,6 @@
         </div>`).join('')}
     </div>
     <div class="sh"><div class="sh-t">⚠️ Deals sin actividad <span class="chip cr">${noAct.length}</span></div></div>
-    <div class="sh"><div class="sh-t">Deals sin actividad <span class="chip cr">${noAct.length}</span></div></div>
     <div class="tw" style="margin-bottom:14px"><table>
       <thead><tr><th>Deal</th><th>Org</th><th>Vendedor</th><th class="col-hide">Funnel</th><th class="ar">Valor ARS</th><th>Etapa</th><th>Cierre est.</th></tr></thead>
       <tbody>${noAct.length ? noAct.sort((a, b) => toA(b) - toA(a)).map(d => `<tr>
@@ -3090,8 +3344,7 @@
         <td class="tm col-hide">${fd(d.expected_close_date)}</td>
       </tr>`).join('') : emptySt('✅', 'Deals con su actividad', 'El equipo de ventas tiene los seguimientos al día')}</tbody>
     </table></div>
-
-    <div class="sh"><div class="sh-t">Deals Calientes <span class="chip cy">≤7 días</span></div></div>
+    <!-- Removed duplicate section title -->
     <div class="tw"><table>
       <thead><tr><th>Deal</th><th class="col-hide">Organización</th><th>Vendedor</th><th class="col-hide">Funnel</th><th class="ar">Valor ARS</th><th>Cierre</th><th>Estado</th></tr></thead>
       <tbody id="tbl-hot"></tbody>
@@ -3116,15 +3369,75 @@
     // ════════════════════════════════════════
     // RANKING
     // ════════════════════════════════════════
+    function initRkYearSelects() {
+      const now = new Date(), cy = now.getFullYear();
+      const opts = [cy, cy - 1, cy - 2, cy - 3].map(y => `<option value="${y}">${y}</option>`).join('');
+      ['rk-year', 'rk-q-year', 'rk-from-year', 'rk-to-year'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.innerHTML = opts;
+      });
+      const rm = document.getElementById('rk-month'); if (rm) rm.value = now.getMonth();
+      const ry = document.getElementById('rk-year'); if (ry) ry.value = cy;
+      const rq = document.getElementById('rk-q'); if (rq) rq.value = Math.floor(now.getMonth() / 3);
+      const rqy = document.getElementById('rk-q-year'); if (rqy) rqy.value = cy;
+      const rfm = document.getElementById('rk-from-month'); if (rfm) rfm.value = 0;
+      const rfy = document.getElementById('rk-from-year'); if (rfy) rfy.value = cy;
+      const rtm = document.getElementById('rk-to-month'); if (rtm) rtm.value = now.getMonth();
+      const rty = document.getElementById('rk-to-year'); if (rty) rty.value = cy;
+    }
+
+    function onRkPeriodChange() {
+      const type = document.getElementById('rk-period-type')?.value || 'month';
+      document.getElementById('rk-sel-month').style.display = type === 'month' ? 'flex' : 'none';
+      document.getElementById('rk-sel-q').style.display = type === 'q' ? 'flex' : 'none';
+      document.getElementById('rk-sel-range').style.display = type === 'range' ? 'flex' : 'none';
+      renderRanking();
+    }
+
+    function getRkDateRange() {
+      const type = document.getElementById('rk-period-type')?.value || 'month';
+      const now = new Date(), cy = now.getFullYear();
+      const MN = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      if (type === 'month') {
+        const m = parseInt(document.getElementById('rk-month')?.value ?? now.getMonth());
+        const y = parseInt(document.getElementById('rk-year')?.value ?? cy);
+        return { start: new Date(y, m, 1), end: new Date(y, m + 1, 0, 23, 59, 59), label: `${MN[m]} ${y}` };
+      }
+      if (type === 'ytd') {
+        return { start: new Date(cy, 0, 1), end: new Date(cy, 11, 31, 23, 59, 59), label: `YTD ${cy}` };
+      }
+      if (type === 'q') {
+        const q = parseInt(document.getElementById('rk-q')?.value ?? 0);
+        const y = parseInt(document.getElementById('rk-q-year')?.value ?? cy);
+        return { start: new Date(y, q * 3, 1), end: new Date(y, q * 3 + 3, 0, 23, 59, 59), label: `Q${q + 1} ${y}` };
+      }
+      if (type === 'range') {
+        const fm = parseInt(document.getElementById('rk-from-month')?.value ?? 0);
+        const fy = parseInt(document.getElementById('rk-from-year')?.value ?? cy);
+        const tm = parseInt(document.getElementById('rk-to-month')?.value ?? 11);
+        const ty = parseInt(document.getElementById('rk-to-year')?.value ?? cy);
+        return {
+          start: new Date(fy, fm, 1), end: new Date(ty, tm + 1, 0, 23, 59, 59),
+          label: `${MN[fm]} ${fy} → ${MN[tm]} ${ty}`
+        };
+      }
+      const m = now.getMonth();
+      return { start: new Date(cy, m, 1), end: new Date(cy, m + 1, 0, 23, 59, 59), label: MN[m] + ' ' + cy };
+    }
+
     function renderRanking() {
-      const now = new Date(), cm = now.getMonth(), cy = now.getFullYear();
+      const { start, end, label } = getRkDateRange();
+      const chip = document.getElementById('rk-period-chip');
+      if (chip) chip.textContent = label;
+      const objPeriod = document.getElementById('obj-period');
+      if (objPeriod) objPeriod.textContent = label;
+
       const obj = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT;
       document.getElementById('obj-label').textContent = '$' + obj.toLocaleString('es-AR') + ' ARS por vendedor';
 
       const wonM = S.won.filter(d => {
         if (!d.won_time) return false;
         const w = new Date(d.won_time);
-        return w.getMonth() === cm && w.getFullYear() === cy;
+        return w >= start && w <= end;
       });
 
       const openByV = {};
@@ -3146,7 +3459,7 @@
         const pct = Math.min((d.rev / obj) * 100, 100);
         const over = d.rev >= obj;
         const bc = over ? '#027a48' : pct >= 60 ? '#1a56db' : '#ef4444';
-        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : '')); 
+        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : ''));
         const pe = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`;
         const pc = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
         return `<div class="rk-summary-row ${rkCls}">
@@ -3211,50 +3524,57 @@
     // ── Poblar selects de año para el forecast ──
     function initFcYearSelects() {
       const now = new Date();
-      const cy  = now.getFullYear();
+      const cy = now.getFullYear();
       const years = [cy + 1, cy, cy - 1, cy - 2];
-      const opts  = years.map(y => `<option value="${y}">${y}</option>`).join('');
-      ['fc-year','fc-q-year','fc-from-year','fc-to-year'].forEach(id => {
+      const opts = years.map(y => `<option value="${y}">${y}</option>`).join('');
+      ['fc-year', 'fc-q-year', 'fc-from-year', 'fc-to-year'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = opts;
       });
       // DEFAULT: mes actual, año actual
       const fcMonth = document.getElementById('fc-month');
-      const fcYear  = document.getElementById('fc-year');
+      const fcYear = document.getElementById('fc-year');
       if (fcMonth) fcMonth.value = now.getMonth();
-      if (fcYear)  fcYear.value  = cy;
+      if (fcYear) fcYear.value = cy;
       // Trimestre actual por default
-      const fcQ     = document.getElementById('fc-q');
+      const fcQ = document.getElementById('fc-q');
       const fcQYear = document.getElementById('fc-q-year');
-      if (fcQ)     fcQ.value     = Math.floor(now.getMonth() / 3);
+      if (fcQ) fcQ.value = Math.floor(now.getMonth() / 3);
       if (fcQYear) fcQYear.value = cy;
       // Rango: desde mes actual hasta 2 meses adelante por default
       const fcFromM = document.getElementById('fc-from-month');
       const fcFromY = document.getElementById('fc-from-year');
-      const fcToM   = document.getElementById('fc-to-month');
-      const fcToY   = document.getElementById('fc-to-year');
+      const fcToM = document.getElementById('fc-to-month');
+      const fcToY = document.getElementById('fc-to-year');
       if (fcFromM) fcFromM.value = now.getMonth();
       if (fcFromY) fcFromY.value = cy;
-      const toDate  = new Date(cy, now.getMonth() + 2, 1);
-      if (fcToM)   fcToM.value   = toDate.getMonth();
-      if (fcToY)   fcToY.value   = toDate.getFullYear();
+      const toDate = new Date(cy, now.getMonth() + 2, 1);
+      if (fcToM) fcToM.value = toDate.getMonth();
+      if (fcToY) fcToY.value = toDate.getFullYear();
+
+      // POBLAR VENDEDORES
+      const fcVf = document.getElementById('fc-vf');
+      if (fcVf) {
+        fcVf.innerHTML = '<option value="">Todos los vendedores</option>' +
+          TEAM.sort().map(v => `<option value="${v}">${v}</option>`).join('');
+      }
     }
 
     // ── Mostrar/ocultar selectores según tipo elegido ──
     function onFcPeriodChange() {
       const type = document.getElementById('fc-period-type')?.value || 'month';
-      document.getElementById('fc-sel-month').style.display  = type === 'month' ? 'flex' : 'none';
-      document.getElementById('fc-sel-q').style.display      = type === 'q'     ? 'flex' : 'none';
-      document.getElementById('fc-sel-range').style.display  = type === 'range' ? 'flex' : 'none';
+      document.getElementById('fc-sel-month').style.display = type === 'month' ? 'flex' : 'none';
+      document.getElementById('fc-sel-q').style.display = type === 'q' ? 'flex' : 'none';
+      document.getElementById('fc-sel-range').style.display = type === 'range' ? 'flex' : 'none';
       renderForecast();
     }
 
     // ── getFcRange(): reemplaza getRange(fcP) ──
     function getFcRange() {
       const type = document.getElementById('fc-period-type')?.value || 'month';
-      const now  = new Date();
-      const cy   = now.getFullYear();
-      const MN   = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const now = new Date();
+      const cy = now.getFullYear();
+      const MN = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
       if (type === 'month') {
         const m = parseInt(document.getElementById('fc-month')?.value ?? now.getMonth());
