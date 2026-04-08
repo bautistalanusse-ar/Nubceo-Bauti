@@ -48,7 +48,7 @@
       "module": "pipedrive:searchPersons",
       "version": 2,
       "parameters": {
-        "__IMTCONN__": null
+        "__IMTCONN__": 8258824
       },
       "mapper": {
         "term": "{{1.fromEmail}}",
@@ -61,9 +61,12 @@
           "parameters": {
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "pipedrive-auth" },
-              "label": "My Pipedrive connection"
-            },
-            "fields": { "label": "Email" }
+              "label": "My Pipedrive OAuth connection"
+            }
+          },
+          "expect": {
+            "fields": { "mode": "chose" },
+            "exact_match": { "mode": "chose" }
           }
         }
       }
@@ -73,11 +76,12 @@
       "module": "pipedrive:listDealsV2",
       "version": 2,
       "parameters": {
-        "__IMTCONN__": null
+        "__IMTCONN__": 8258824
       },
       "mapper": {
         "person_id": "{{3.id}}",
-        "status": "open"
+        "status": "open",
+        "limit": 10
       },
       "metadata": {
         "designer": { "x": 900, "y": 0 },
@@ -85,9 +89,11 @@
           "parameters": {
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "pipedrive-auth" },
-              "label": "My Pipedrive connection"
-            },
-            "status": { "label": "Open" }
+              "label": "My Pipedrive OAuth connection"
+            }
+          },
+          "expect": {
+            "status": { "mode": "chose" }
           }
         }
       }
@@ -97,12 +103,11 @@
       "module": "pipedrive:CreateNote",
       "version": 2,
       "parameters": {
-        "__IMTCONN__": null
+        "__IMTCONN__": 8258834
       },
       "mapper": {
         "content": "{{2.result}}",
         "deal_id": "{{4.id}}",
-        "person_id": "{{3.id}}",
         "pinned_to_deal_flag": true
       },
       "metadata": {
@@ -111,8 +116,11 @@
           "parameters": {
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "pipedrive-auth" },
-              "label": "My Pipedrive connection"
+              "label": "My Pipedrive OAuth connection"
             }
+          },
+          "expect": {
+            "pinned_to_deal_flag": { "mode": "chose" }
           }
         }
       }
