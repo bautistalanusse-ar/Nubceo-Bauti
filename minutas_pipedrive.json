@@ -3,14 +3,16 @@
   "flow": [
     {
       "id": 1,
-      "module": "google-email:TriggerNewEmail",
-      "version": 1,
+      "module": "google-email:triggerWatchNewEmails",
+      "version": 4,
       "parameters": {
         "__IMTCONN__": 8153044,
-        "searchType": "gmail",
-        "xGmRaw": "(to:agenda.virtual@nubceo.com OR cc:agenda.virtual@nubceo.com) (\"resumen\" OR \"minuta\" OR \"notas\") -invitación -invite -canceled -accepted -.ics",
+        "filterType": "gmailSearch",
+        "format": "full",
+        "includeHtmlBody": true,
+        "limit": 10,
         "markSeen": false,
-        "maxResults": 10
+        "q": "(to:agenda.virtual@nubceo.com OR cc:agenda.virtual@nubceo.com) (\"resumen\" OR \"minuta\" OR \"notas\") -invitación -invite -canceled -accepted -.ics"
       },
       "mapper": {},
       "metadata": {
@@ -20,7 +22,9 @@
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "google-email" },
               "label": "My Gmail connection"
-            }
+            },
+            "filterType": { "label": "Gmail filter" },
+            "format": { "label": "Full content" }
           }
         }
       }
@@ -32,7 +36,7 @@
       "parameters": {},
       "mapper": {
         "model": "gemini-2.5-flash",
-        "textPrompt": "Actúa como un experto en ventas B2B. A continuación te paso una minuta de una reunión. Tu tarea es analizar el texto y extraer la información solicitada completando esta estructura. Si algún dato no se menciona, escribe \"No especificado\".\n\nEstructura:\n- Fecha:\n- Participantes:\n- Cantidad de Sucursales:\n- Medios de Pagos:\n- Cantidad de transacciones mensuales:\n- ERP:\n- Punto de Venta:\n- Software para conciliar:\n- Terminales integradas:\n- Departamento de Sistemas:\n- Proceso de Control de las Tarjetas:\n- Principales Necesidades identificadas:\n- Puntos que destacó el cliente sobre Nubceo:\n- Beneficios que Nubceo le traería al cliente:\n- Pasos a seguir acordados con el cliente:\n\nMinuta de reunión:\n{{1.text}}",
+        "textPrompt": "Actúa como un experto en ventas B2B. A continuación te paso una minuta de una reunión. Tu tarea es analizar el texto y extraer la información solicitada completando esta estructura. Si algún dato no se menciona, escribe \"No especificado\".\n\nEstructura:\n- Fecha:\n- Participantes:\n- Cantidad de Sucursales:\n- Medios de Pagos:\n- Cantidad de transacciones mensuales:\n- ERP:\n- Punto de Venta:\n- Software para conciliar:\n- Terminales integradas:\n- Departamento de Sistemas:\n- Proceso de Control de las Tarjetas:\n- Principales Necesidades identificadas:\n- Puntos que destacó el cliente sobre Nubceo:\n- Beneficios que Nubceo le traería al cliente:\n- Pasos a seguir acordados con el cliente:\n\nMinuta de reunión:\n{{ifempty(1.fullTextBody; 1.htmlBody)}}",
         "systemPrompt": ""
       },
       "metadata": {
@@ -41,15 +45,13 @@
     },
     {
       "id": 3,
-      "module": "pipedrive:ActionSearchObjects",
-      "version": 1,
+      "module": "pipedrive:searchPersons",
+      "version": 2,
       "parameters": {
-        "__IMTCONN__": 7916818,
-        "module": "persons",
-        "continueWhenNoRes": false
+        "__IMTCONN__": null
       },
       "mapper": {
-        "term": "{{1.from.address}}",
+        "term": "{{1.fromEmail}}",
         "fields": "email",
         "exact_match": true
       },
@@ -58,61 +60,44 @@
         "restore": {
           "parameters": {
             "__IMTCONN__": {
-              "data": { "scoped": "true", "connection": "pipedrive" },
+              "data": { "scoped": "true", "connection": "pipedrive-auth" },
               "label": "My Pipedrive connection"
             },
-            "module": { "label": "Persons" }
+            "fields": { "label": "Email" }
           }
         }
       }
     },
     {
       "id": 4,
-      "module": "pipedrive:ActionGetAllObjects",
-      "version": 1,
+      "module": "pipedrive:listDealsV2",
+      "version": 2,
       "parameters": {
-        "__IMTCONN__": 7916818,
-        "module": "deals",
-        "continueWhenNoRes": false
+        "__IMTCONN__": null
       },
-      "mapper": {},
+      "mapper": {
+        "person_id": "{{3.id}}",
+        "status": "open"
+      },
       "metadata": {
         "designer": { "x": 900, "y": 0 },
         "restore": {
           "parameters": {
             "__IMTCONN__": {
-              "data": { "scoped": "true", "connection": "pipedrive" },
+              "data": { "scoped": "true", "connection": "pipedrive-auth" },
               "label": "My Pipedrive connection"
             },
-            "module": { "label": "Deals" }
+            "status": { "label": "Open" }
           }
         }
       }
     },
     {
       "id": 5,
-      "module": "pipedrive:ActionCreateObject",
-      "version": 1,
+      "module": "pipedrive:CreateNote",
+      "version": 2,
       "parameters": {
-        "__IMTCONN__": 7916818,
-        "module": "notes"
-      },
-      "filter": {
-        "name": "Deal abierto del contacto",
-        "conditions": [
-          [
-            {
-              "a": "{{4.person_id.value}}",
-              "b": "{{3.id}}",
-              "o": "number:equal"
-            },
-            {
-              "a": "{{4.status}}",
-              "b": "open",
-              "o": "text:equal"
-            }
-          ]
-        ]
+        "__IMTCONN__": null
       },
       "mapper": {
         "content": "{{2.result}}",
@@ -125,10 +110,9 @@
         "restore": {
           "parameters": {
             "__IMTCONN__": {
-              "data": { "scoped": "true", "connection": "pipedrive" },
+              "data": { "scoped": "true", "connection": "pipedrive-auth" },
               "label": "My Pipedrive connection"
-            },
-            "module": { "label": "Notes" }
+            }
           }
         }
       }
