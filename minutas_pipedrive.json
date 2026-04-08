@@ -12,7 +12,7 @@
         "includeHtmlBody": true,
         "limit": 10,
         "markSeen": false,
-        "q": "(to:agenda.virtual@nubceo.com OR cc:agenda.virtual@nubceo.com) (\"resumen\" OR \"minuta\" OR \"notas\") -invitación -invite -canceled -accepted -.ics"
+        "q": "(from:gemini-notes@google.com OR to:agenda.virtual@nubceo.com OR cc:agenda.virtual@nubceo.com) (notas OR resumen OR minuta OR notes OR summary OR recap) -invite -canceled -.ics"
       },
       "mapper": {},
       "metadata": {
@@ -36,8 +36,8 @@
       "parameters": {},
       "mapper": {
         "model": "gemini-2.5-flash",
-        "textPrompt": "Actúa como un experto en ventas B2B. A continuación te paso una minuta de una reunión. Tu tarea es analizar el texto y extraer la información solicitada completando esta estructura. Si algún dato no se menciona, escribe \"No especificado\".\n\nEstructura:\n- Fecha:\n- Participantes:\n- Cantidad de Sucursales:\n- Medios de Pagos:\n- Cantidad de transacciones mensuales:\n- ERP:\n- Punto de Venta:\n- Software para conciliar:\n- Terminales integradas:\n- Departamento de Sistemas:\n- Proceso de Control de las Tarjetas:\n- Principales Necesidades identificadas:\n- Puntos que destacó el cliente sobre Nubceo:\n- Beneficios que Nubceo le traería al cliente:\n- Pasos a seguir acordados con el cliente:\n\nMinuta de reunión:\n{{ifempty(1.fullTextBody; 1.htmlBody)}}",
-        "systemPrompt": ""
+        "systemPrompt": "Responde SIEMPRE con JSON puro y valido. Sin texto previo, sin explicaciones, sin bloques de codigo markdown. Solo el objeto JSON.",
+        "textPrompt": "Analiza la siguiente minuta de reunion y devuelve un JSON con exactamente estas claves:\n1. empresa_cliente: nombre de la empresa cliente externa (nunca Nubceo)\n2. emails_participantes: array con los emails de los participantes externos (no de Nubceo) que encuentres en el texto. Si no hay emails explicitos, devuelve array vacio []\n3. minuta: texto con la minuta estructurada con estos campos separados por saltos de linea:\n   - Fecha:\n   - Participantes:\n   - Cantidad de Sucursales:\n   - Medios de Pagos:\n   - Cantidad de transacciones mensuales:\n   - ERP:\n   - Punto de Venta:\n   - Software para conciliar:\n   - Terminales integradas:\n   - Departamento de Sistemas:\n   - Proceso de Control de las Tarjetas:\n   - Principales Necesidades identificadas:\n   - Puntos que destaco el cliente sobre Nubceo:\n   - Beneficios que Nubceo le traeria al cliente:\n   - Pasos a seguir acordados con el cliente:\n\nSi algun dato no se menciona escribe No especificado.\n\nMinuta:\n{{ifempty(1.fullTextBody; 1.htmlBody)}}"
       },
       "metadata": {
         "designer": { "x": 300, "y": 0 }
@@ -45,82 +45,90 @@
     },
     {
       "id": 3,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "array": "{{if(length(parseJSON(2.result).emails_participantes) > 0; parseJSON(2.result).emails_participantes; emptyarray)}}"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 }
+      }
+    },
+    {
+      "id": 4,
       "module": "pipedrive:searchPersons",
       "version": 2,
       "parameters": {
         "__IMTCONN__": 8258824
       },
       "mapper": {
-        "term": "{{1.fromEmail}}",
+        "term": "{{3.value}}",
         "fields": "email",
-        "exact_match": true
-      },
-      "metadata": {
-        "designer": { "x": 600, "y": 0 },
-        "restore": {
-          "parameters": {
-            "__IMTCONN__": {
-              "data": { "scoped": "true", "connection": "pipedrive-auth" },
-              "label": "My Pipedrive OAuth connection"
-            }
-          },
-          "expect": {
-            "fields": { "mode": "chose" },
-            "exact_match": { "mode": "chose" }
-          }
-        }
-      }
-    },
-    {
-      "id": 4,
-      "module": "pipedrive:listDealsV2",
-      "version": 2,
-      "parameters": {
-        "__IMTCONN__": 8258824
-      },
-      "mapper": {
-        "person_id": "{{3.id}}",
-        "status": "open",
-        "limit": 10
+        "exact_match": false
       },
       "metadata": {
         "designer": { "x": 900, "y": 0 },
         "restore": {
+          "expect": {
+            "exact_match": { "mode": "chose" },
+            "fields": { "mode": "chose" }
+          },
           "parameters": {
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "pipedrive-auth" },
               "label": "My Pipedrive OAuth connection"
             }
-          },
-          "expect": {
-            "status": { "mode": "chose" }
           }
         }
       }
     },
     {
       "id": 5,
+      "module": "pipedrive:listDealsV2",
+      "version": 2,
+      "parameters": {
+        "__IMTCONN__": 8258824
+      },
+      "mapper": {
+        "person_id": "{{4.id}}",
+        "status": "open",
+        "limit": 10
+      },
+      "metadata": {
+        "designer": { "x": 1200, "y": 0 },
+        "restore": {
+          "expect": { "status": { "mode": "chose" } },
+          "parameters": {
+            "__IMTCONN__": {
+              "data": { "scoped": "true", "connection": "pipedrive-auth" },
+              "label": "My Pipedrive OAuth connection"
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
       "module": "pipedrive:CreateNote",
       "version": 2,
       "parameters": {
         "__IMTCONN__": 8258834
       },
       "mapper": {
-        "content": "{{2.result}}",
-        "deal_id": "{{4.id}}",
+        "content": "{{parseJSON(2.result).minuta}}",
+        "deal_id": "{{5.id}}",
         "pinned_to_deal_flag": true
       },
       "metadata": {
-        "designer": { "x": 1200, "y": 0 },
+        "designer": { "x": 1500, "y": 0 },
         "restore": {
+          "expect": { "pinned_to_deal_flag": { "mode": "chose" } },
           "parameters": {
             "__IMTCONN__": {
               "data": { "scoped": "true", "connection": "pipedrive-auth" },
               "label": "My Pipedrive OAuth connection"
             }
-          },
-          "expect": {
-            "pinned_to_deal_flag": { "mode": "chose" }
           }
         }
       }
