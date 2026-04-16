@@ -19,6 +19,7 @@
       --sur3: #eef0f4;
       --bdr: #e4e7ec;
       --bdr2: #d0d5dd;
+
       --tx: #0a0d14;
       --tx2: #3d4451;
       --mt: #6c7585;
@@ -1905,12 +1906,14 @@
         gap: 8px;
         padding: 10px 12px;
       }
+
       #fc-sel-month,
       #fc-sel-q,
       #fc-sel-range {
         flex-wrap: wrap;
         gap: 6px;
       }
+
       #fc-period-bar select {
         font-size: 14px;
         min-height: 36px;
@@ -2110,8 +2113,7 @@
           </span>
 
           <!-- Tipo de período -->
-          <select id="fc-period-type" onchange="onFcPeriodChange()"
-            style="padding:7px 11px;background:#fff;
+          <select id="fc-period-type" onchange="onFcPeriodChange()" style="padding:7px 11px;background:#fff;
             border:1.5px solid #e4e7ec;border-radius:8px;
             color:#0a0d14;font-size:12px;font-weight:600;
             outline:none;cursor:pointer;font-family:inherit">
@@ -2123,8 +2125,7 @@
 
           <!-- OPCIÓN: Mes específico -->
           <div id="fc-sel-month" style="display:flex;gap:8px;align-items:center">
-            <select id="fc-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <option value="0">Enero</option>
@@ -2140,8 +2141,7 @@
               <option value="10">Noviembre</option>
               <option value="11">Diciembre</option>
             </select>
-            <select id="fc-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
@@ -2150,8 +2150,7 @@
 
           <!-- OPCIÓN: Trimestre -->
           <div id="fc-sel-q" style="display:none;gap:8px;align-items:center">
-            <select id="fc-q" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-q" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <option value="0">Q1 (Ene-Mar)</option>
@@ -2159,8 +2158,7 @@
               <option value="2">Q3 (Jul-Sep)</option>
               <option value="3">Q4 (Oct-Dic)</option>
             </select>
-            <select id="fc-q-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-q-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
@@ -2171,38 +2169,46 @@
           <div id="fc-sel-range" style="display:none;gap:8px;
             align-items:center;flex-wrap:wrap">
             <span style="font-size:11px;color:#6c7585">Desde:</span>
-            <select id="fc-from-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-from-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
-              <option value="0">Enero</option><option value="1">Febrero</option>
-              <option value="2">Marzo</option><option value="3">Abril</option>
-              <option value="4">Mayo</option><option value="5">Junio</option>
-              <option value="6">Julio</option><option value="7">Agosto</option>
-              <option value="8">Septiembre</option><option value="9">Octubre</option>
-              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
             </select>
-            <select id="fc-from-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-from-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
             </select>
             <span style="font-size:13px;color:#9aa1b1">→</span>
             <span style="font-size:11px;color:#6c7585">Hasta:</span>
-            <select id="fc-to-month" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-to-month" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
-              <option value="0">Enero</option><option value="1">Febrero</option>
-              <option value="2">Marzo</option><option value="3">Abril</option>
-              <option value="4">Mayo</option><option value="5">Junio</option>
-              <option value="6">Julio</option><option value="7">Agosto</option>
-              <option value="8">Septiembre</option><option value="9">Octubre</option>
-              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+              <option value="0">Enero</option>
+              <option value="1">Febrero</option>
+              <option value="2">Marzo</option>
+              <option value="3">Abril</option>
+              <option value="4">Mayo</option>
+              <option value="5">Junio</option>
+              <option value="6">Julio</option>
+              <option value="7">Agosto</option>
+              <option value="8">Septiembre</option>
+              <option value="9">Octubre</option>
+              <option value="10">Noviembre</option>
+              <option value="11">Diciembre</option>
             </select>
-            <select id="fc-to-year" onchange="renderForecast()"
-              style="padding:7px 11px;background:#fff;
+            <select id="fc-to-year" onchange="renderForecast()" style="padding:7px 11px;background:#fff;
               border:1.5px solid #e4e7ec;border-radius:8px;
               color:#0a0d14;font-size:12px;outline:none;font-family:inherit">
               <!-- Poblado por JS -->
@@ -2210,8 +2216,7 @@
           </div>
 
           <!-- Chip con el período activo -->
-          <span id="fc-period-chip"
-            style="display:inline-flex;align-items:center;padding:4px 10px;
+          <span id="fc-period-chip" style="display:inline-flex;align-items:center;padding:4px 10px;
             border-radius:20px;font-size:10px;font-weight:700;
             background:#eff4ff;color:#1a56db;
             font-family:'JetBrains Mono',monospace;white-space:nowrap">
@@ -2348,8 +2353,11 @@
               <table>
                 <thead>
                   <tr>
-                    <th>Deal</th><th>Organización</th>
-                    <th>Vendedor</th><th>Valor ARS</th><th>Fecha</th>
+                    <th>Deal</th>
+                    <th>Organización</th>
+                    <th>Vendedor</th>
+                    <th>Valor ARS</th>
+                    <th>Fecha</th>
                   </tr>
                 </thead>
                 <tbody id="tbl-dev-won"></tbody>
@@ -2369,9 +2377,13 @@
           <table>
             <thead>
               <tr>
-                <th>Deal</th><th>Organización</th><th>Vendedor</th>
-                <th>Etapa</th><th>Valor ARS</th>
-                <th>Cierre Est.</th><th>Actividad</th>
+                <th>Deal</th>
+                <th>Organización</th>
+                <th>Vendedor</th>
+                <th>Etapa</th>
+                <th>Valor ARS</th>
+                <th>Cierre Est.</th>
+                <th>Actividad</th>
               </tr>
             </thead>
             <tbody id="tbl-dev-open"></tbody>
@@ -2388,8 +2400,11 @@
           <table>
             <thead>
               <tr>
-                <th>Deal</th><th>Organización</th><th>Vendedor</th>
-                <th>Valor ARS</th><th>Etapa</th>
+                <th>Deal</th>
+                <th>Organización</th>
+                <th>Vendedor</th>
+                <th>Valor ARS</th>
+                <th>Etapa</th>
               </tr>
             </thead>
             <tbody id="tbl-dev-noact"></tbody>
@@ -2642,7 +2657,7 @@
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = dedup(rawO.filter(d => d.pipeline_id === 158));
-        S.devWon  = rawW.filter(d => d.pipeline_id === 158);
+        S.devWon = rawW.filter(d => d.pipeline_id === 158);
 
         setLd('Tipo de cambio…');
         await loadFX();
@@ -2777,8 +2792,8 @@
       const cy = now.getFullYear();
       const cq = Math.floor(cm / 3);
 
-      const open  = S.devOpen;  // deals abiertos en pipeline 158
-      const won   = S.devWon;   // deals ganados en pipeline 158
+      const open = S.devOpen;  // deals abiertos en pipeline 158
+      const won = S.devWon;   // deals ganados en pipeline 158
 
       // Filtros temporales
       const wonM = won.filter(d => {
@@ -2797,7 +2812,7 @@
 
       // Deals que cierran este mes (forecast)
       const marStart = new Date(cy, cm, 1);
-      const marEnd   = new Date(cy, cm + 1, 0);
+      const marEnd = new Date(cy, cm + 1, 0);
       const forecast = open.filter(d => {
         if (!d.expected_close_date) return false;
         const c = new Date(d.expected_close_date);
@@ -2884,8 +2899,8 @@
       const tbWon = document.getElementById('tbl-dev-won');
       tbWon.innerHTML = wonM.length
         ? wonM
-            .sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
-            .map(d => `<tr>
+          .sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
+          .map(d => `<tr>
               <td class="tb">${d.title || '—'}</td>
               <td>${d.org_name || '—'}</td>
               <td>${gv(d)}</td>
@@ -2901,19 +2916,19 @@
       const tbOpen = document.getElementById('tbl-dev-open');
       tbOpen.innerHTML = open.length
         ? open
-            .sort((a, b) => toARS(b) - toARS(a))
-            .map(d => {
-              const days = dt(d.expected_close_date);
-              const ast  = actSt(d);
-              const dc   = days !== null && days < 0 ? '#b42318'
-                         : days !== null && days <= 7 ? '#b54708'
-                         : '#9aa1b1';
-              const at   = ast === 'noact'
-                ? '<span class="tag tr">⚠ Sin act.</span>'
-                : ast === 'over'
+          .sort((a, b) => toARS(b) - toARS(a))
+          .map(d => {
+            const days = dt(d.expected_close_date);
+            const ast = actSt(d);
+            const dc = days !== null && days < 0 ? '#b42318'
+              : days !== null && days <= 7 ? '#b54708'
+                : '#9aa1b1';
+            const at = ast === 'noact'
+              ? '<span class="tag tr">⚠ Sin act.</span>'
+              : ast === 'over'
                 ? '<span class="tag ty">🕐 Vencida</span>'
                 : '<span class="tag tg">✓ Al día</span>';
-              return `<tr>
+            return `<tr>
                 <td class="tb" style="max-width:160px;overflow:hidden;
                   text-overflow:ellipsis;white-space:nowrap">
                   ${d.title || '—'}
@@ -2929,7 +2944,7 @@
                 </td>
                 <td>${at}</td>
               </tr>`;
-            }).join('')
+          }).join('')
         : '<tr><td colspan="7" class="empty">Sin deals abiertos</td></tr>';
 
       // ── SIN ACTIVIDAD ──
@@ -2937,8 +2952,8 @@
       const tbNoact = document.getElementById('tbl-dev-noact');
       tbNoact.innerHTML = noAct.length
         ? noAct
-            .sort((a, b) => toARS(b) - toARS(a))
-            .map(d => `<tr>
+          .sort((a, b) => toARS(b) - toARS(a))
+          .map(d => `<tr>
               <td class="tb">${d.title || '—'}</td>
               <td>${d.org_name || '—'}</td>
               <td>${gv(d)}</td>
@@ -3146,7 +3161,7 @@
         const pct = Math.min((d.rev / obj) * 100, 100);
         const over = d.rev >= obj;
         const bc = over ? '#027a48' : pct >= 60 ? '#1a56db' : '#ef4444';
-        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : '')); 
+        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : ''));
         const pe = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`;
         const pc = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
         return `<div class="rk-summary-row ${rkCls}">
@@ -3211,50 +3226,50 @@
     // ── Poblar selects de año para el forecast ──
     function initFcYearSelects() {
       const now = new Date();
-      const cy  = now.getFullYear();
+      const cy = now.getFullYear();
       const years = [cy + 1, cy, cy - 1, cy - 2];
-      const opts  = years.map(y => `<option value="${y}">${y}</option>`).join('');
-      ['fc-year','fc-q-year','fc-from-year','fc-to-year'].forEach(id => {
+      const opts = years.map(y => `<option value="${y}">${y}</option>`).join('');
+      ['fc-year', 'fc-q-year', 'fc-from-year', 'fc-to-year'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerHTML = opts;
       });
       // DEFAULT: mes actual, año actual
       const fcMonth = document.getElementById('fc-month');
-      const fcYear  = document.getElementById('fc-year');
+      const fcYear = document.getElementById('fc-year');
       if (fcMonth) fcMonth.value = now.getMonth();
-      if (fcYear)  fcYear.value  = cy;
+      if (fcYear) fcYear.value = cy;
       // Trimestre actual por default
-      const fcQ     = document.getElementById('fc-q');
+      const fcQ = document.getElementById('fc-q');
       const fcQYear = document.getElementById('fc-q-year');
-      if (fcQ)     fcQ.value     = Math.floor(now.getMonth() / 3);
+      if (fcQ) fcQ.value = Math.floor(now.getMonth() / 3);
       if (fcQYear) fcQYear.value = cy;
       // Rango: desde mes actual hasta 2 meses adelante por default
       const fcFromM = document.getElementById('fc-from-month');
       const fcFromY = document.getElementById('fc-from-year');
-      const fcToM   = document.getElementById('fc-to-month');
-      const fcToY   = document.getElementById('fc-to-year');
+      const fcToM = document.getElementById('fc-to-month');
+      const fcToY = document.getElementById('fc-to-year');
       if (fcFromM) fcFromM.value = now.getMonth();
       if (fcFromY) fcFromY.value = cy;
-      const toDate  = new Date(cy, now.getMonth() + 2, 1);
-      if (fcToM)   fcToM.value   = toDate.getMonth();
-      if (fcToY)   fcToY.value   = toDate.getFullYear();
+      const toDate = new Date(cy, now.getMonth() + 2, 1);
+      if (fcToM) fcToM.value = toDate.getMonth();
+      if (fcToY) fcToY.value = toDate.getFullYear();
     }
 
     // ── Mostrar/ocultar selectores según tipo elegido ──
     function onFcPeriodChange() {
       const type = document.getElementById('fc-period-type')?.value || 'month';
-      document.getElementById('fc-sel-month').style.display  = type === 'month' ? 'flex' : 'none';
-      document.getElementById('fc-sel-q').style.display      = type === 'q'     ? 'flex' : 'none';
-      document.getElementById('fc-sel-range').style.display  = type === 'range' ? 'flex' : 'none';
+      document.getElementById('fc-sel-month').style.display = type === 'month' ? 'flex' : 'none';
+      document.getElementById('fc-sel-q').style.display = type === 'q' ? 'flex' : 'none';
+      document.getElementById('fc-sel-range').style.display = type === 'range' ? 'flex' : 'none';
       renderForecast();
     }
 
     // ── getFcRange(): reemplaza getRange(fcP) ──
     function getFcRange() {
       const type = document.getElementById('fc-period-type')?.value || 'month';
-      const now  = new Date();
-      const cy   = now.getFullYear();
-      const MN   = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const now = new Date();
+      const cy = now.getFullYear();
+      const MN = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
       if (type === 'month') {
         const m = parseInt(document.getElementById('fc-month')?.value ?? now.getMonth());
