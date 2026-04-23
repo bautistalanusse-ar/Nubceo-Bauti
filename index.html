@@ -990,6 +990,54 @@
       border-bottom: none
     }
 
+    .fc-r.fc-clickable {
+      cursor: pointer;
+      border-radius: 6px;
+      transition: background .15s
+    }
+
+    .fc-r.fc-clickable:hover {
+      background: var(--sur2)
+    }
+
+    .fc-r.fc-sel {
+      background: var(--bl-l) !important;
+      outline: 1.5px solid var(--bl-m)
+    }
+
+    .fc-vendor-panel {
+      background: var(--sur);
+      border: 1.5px solid var(--bl-m);
+      border-radius: var(--r);
+      padding: 20px;
+      margin-bottom: 16px
+    }
+
+    .fc-quota-bar {
+      height: 8px;
+      background: var(--sur3);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      margin: 6px 0 4px
+    }
+
+    .fc-quota-bar .layer-forecast {
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      top: 0;
+      left: 0
+    }
+
+    .fc-quota-bar .layer-won {
+      position: absolute;
+      height: 100%;
+      border-radius: 4px;
+      top: 0;
+      left: 0
+    }
+
     .fc-vn {
       color: var(--mt);
       font-size: 10px
@@ -2231,6 +2279,16 @@
           <div class="sh-t">📅 Forecast por Funnel y Vendedor</div>
         </div>
         <div class="fc-grid" id="fc-cards"></div>
+
+        <!-- Vendor detail panel (shown on click) -->
+        <div id="fc-vendor-detail" style="display:none"></div>
+
+        <!-- Tabla Forecast vs Objetivo -->
+        <div class="sh" style="margin-top:4px">
+          <div class="sh-t">🎯 Comerciales vs. Objetivo <span class="chip cb" id="fc-obj-chip"></span></div>
+        </div>
+        <div class="tw" id="fc-obj-table" style="margin-bottom:16px"></div>
+
         <!-- Actividades vencidas vs futuras -->
         <div class="two-col" style="margin-top:4px">
           <div>
@@ -2531,14 +2589,17 @@
       219: 'Juan B', 279: 'Luciano R', 388: 'Lucia P', 389: 'Lucia P',
       458: 'Mateo L', 516: 'Omar B', 519: 'Vanessa A', 520: 'Hernan P',
       528: 'Emiliana G', 529: 'Federico S', 530: 'Tomas G', 531: 'Magui R',
-      532: 'Federico C', 533: 'Eduardo A', 534: 'Matias R', 535: 'Fernanda A', 536: 'Santiago S'
+      532: 'Federico C', 533: 'Eduardo A', 534: 'Matias R', 535: 'Fernanda A', 536: 'Santiago S',
+      // Pablo A y Pablo I — actualizar IDs cuando estén disponibles en Pipedrive
+      // 537: 'Pablo A', 538: 'Pablo I'
     };
     // Core team (shown in ranking)
-    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Omar B', 'Vanessa A', 'Emiliana G', 'Federico S'];
+    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Omar B', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo A', 'Pablo I'];
     const TEAM_COLORS = {
       'Hernan P': '#1a56db', 'Mateo L': '#027a48', 'Juan B': '#5925dc',
       'Luciano R': '#b54708', 'Lucia P': '#b42318', 'Omar B': '#0891b2',
-      'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706'
+      'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706',
+      'Pablo A': '#0e7490', 'Pablo I': '#15803d'
     };
     const VKEY = '56886cd51be8dc1caeead05ed3d8cfb095c12afd';
     const OPEN_P = new Set([149, 151, 159]);
@@ -3274,7 +3335,8 @@
       if (type === 'month') {
         const m = parseInt(document.getElementById('fc-month')?.value ?? now.getMonth());
         const y = parseInt(document.getElementById('fc-year')?.value ?? cy);
-        return { s: new Date(y, m, 1), e: new Date(y, m + 1, 0, 23, 59, 59), label: `${MN[m]} ${y}` };
+        // filterMonth/filterYear se usan para comparación estricta sin timezone issues
+        return { s: new Date(y, m, 1), e: new Date(y, m + 1, 0, 23, 59, 59), label: `${MN[m]} ${y}`, filterMonth: m, filterYear: y };
       }
       if (type === 'ytd') {
         return { s: new Date(cy, 0, 1), e: new Date(cy, 11, 31, 23, 59, 59), label: `YTD ${cy}` };
@@ -3293,18 +3355,29 @@
       }
       // Fallback: mes actual
       const m = now.getMonth();
-      return { s: new Date(cy, m, 1), e: new Date(cy, m + 1, 0, 23, 59, 59), label: MN[m] + ' ' + cy };
+      return { s: new Date(cy, m, 1), e: new Date(cy, m + 1, 0, 23, 59, 59), label: MN[m] + ' ' + cy, filterMonth: m, filterYear: cy };
     }
     function renderForecast() {
-      const { s, e, label } = getFcRange();
+      const range = getFcRange();
+      const { s, e, label } = range;
       // Actualizar chip de período
       const fcChip = document.getElementById('fc-period-chip');
       if (fcChip) fcChip.textContent = label;
       // Actualizar subtítulo topbar
       const topP = document.getElementById('top-p');
       if (topP) topP.textContent = `Deals proyectados — ${label}`;
+
+      // Si es modo mes específico, usar comparación estricta de mes/año
+      // para evitar problemas de timezone con fechas tipo "2026-05-01"
       const inR = d => {
         if (!d.expected_close_date) return false;
+        if (range.filterMonth !== undefined && range.filterYear !== undefined) {
+          // Parsear la fecha como local (YYYY-MM-DD) sin conversión UTC
+          const parts = d.expected_close_date.split('-');
+          const dm = parseInt(parts[1]) - 1; // mes 0-indexed
+          const dy = parseInt(parts[0]);
+          return dm === range.filterMonth && dy === range.filterYear;
+        }
         const c = new Date(d.expected_close_date);
         return c >= s && c <= e;
       };
@@ -3329,10 +3402,140 @@
     </div>`;
       }).join('') + `<div class="kpi" style="border-top:3px solid #6c7585">
     <div class="kpi-ico" style="background:#f1f5f9;color:#475569"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
-    <div class="kpi-lb">Total período</div>
+<div class="kpi-lb">Total período</div>
     <div class="kpi-vl">${deals.length}</div>
     <div class="kpi-trend">${$A(totAll)}</div>
   </div>`;
+
+      // ── Tabla Forecast vs Objetivo por Comercial ──
+      const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || 6000000;
+      const UY_VENDORS = new Set(['Vanessa A', 'Omar B', 'Lucia P', 'Pablo I']);
+      const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
+      const getObj = (v) => UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
+      const byVendor = {};
+      TEAM.forEach(v => { byVendor[v] = { fc: 0, fcN: 0, won: 0, wonN: 0 }; });
+      // Forecast (deals abiertos del período)
+      deals.forEach(d => {
+        const v = gv(d);
+        if (!v || v === '—') return;
+        if (!byVendor[v]) byVendor[v] = { fc: 0, fcN: 0, won: 0, wonN: 0 };
+        byVendor[v].fc += toA(d);
+        byVendor[v].fcN++;
+      });
+      // Ganados (deals won en el mismo período)
+      const wonInPeriod = S.won.filter(d => {
+        if (!d.won_time) return false;
+        if (range.filterMonth !== undefined && range.filterYear !== undefined) {
+          const w = new Date(d.won_time);
+          return w.getMonth() === range.filterMonth && w.getFullYear() === range.filterYear;
+        }
+        const w = new Date(d.won_time); return w >= s && w <= e;
+      });
+      wonInPeriod.forEach(d => {
+        const v = gv(d);
+        if (!v || v === '—') return;
+        if (!byVendor[v]) byVendor[v] = { fc: 0, fcN: 0, won: 0, wonN: 0 };
+        byVendor[v].won += toA(d);
+        byVendor[v].wonN++;
+      });
+
+      const vendorRows = Object.entries(byVendor).sort((a, b) => (b[1].won + b[1].fc) - (a[1].won + a[1].fc));
+      const totalFc   = vendorRows.reduce((s, [, d]) => s + d.fc,  0);
+      const totalWon  = vendorRows.reduce((s, [, d]) => s + d.won, 0);
+      const totalObj  = vendorRows.reduce((s, [v]) => s + getObj(v), 0);
+      const avgFcPct  = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + (d.fc  / getObj(v)) * 100, 0) / vendorRows.length : 0;
+      const avgWonPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + (d.won / getObj(v)) * 100, 0) / vendorRows.length : 0;
+      const avgTotPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + ((d.won > 0 ? d.won + d.fc : d.fc) / getObj(v)) * 100, 0) / vendorRows.length : 0;
+
+      const fcObjChip = document.getElementById('fc-obj-chip');
+      if (fcObjChip) fcObjChip.textContent = `Obj ARG: ${$A(OBJ_VENDOR)} · UY: ${$A(OBJ_UY)}`;
+
+      const stBadge = (pct) => {
+        if (pct >= 100) return `<span class="tag tg">✓ Cumple</span>`;
+        if (pct >= 90)  return `<span class="tag ty">↗ Cerca</span>`;
+        if (pct >= 60)  return `<span class="tag tb2">→ En curso</span>`;
+        return `<span class="tag tr">↓ Debajo</span>`;
+      };
+      const pctCell = (pct, bold) => {
+        const c  = pct >= 100 ? '#027a48' : pct >= 90 ? '#b54708' : pct >= 60 ? '#1a56db' : '#b42318';
+        const bg = pct >= 100 ? '#ecfdf3' : pct >= 90 ? '#fffaeb' : pct >= 60 ? '#eff4ff' : '#fef3f2';
+        return `<td class="ar" style="background:${bg};color:${c};font-weight:${bold?800:600};font-family:'JetBrains Mono',monospace;font-size:12px">${pct.toFixed(1)}%</td>`;
+      };
+      const diffCell = (val) => {
+        const c = val >= 0 ? '#027a48' : '#b42318';
+        return `<td class="tm ar" style="color:${c};font-weight:600">${(val>=0?'+':'')}${$A(val)}</td>`;
+      };
+
+      const fcObjTable = document.getElementById('fc-obj-table');
+      if (fcObjTable) {
+        fcObjTable.innerHTML = `<table>
+          <thead>
+            <tr>
+              <th>Comercial</th>
+              <th class="ar">Objetivo</th>
+              <th class="ar">Forecast $</th>
+              <th class="ar">Ganados $</th>
+              <th class="ar">% Real</th>
+              <th class="ar">% Forecast</th>
+              <th class="ar">% Total</th>
+              <th>Est. Forecast</th>
+              <th>Est. Real</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${vendorRows.map(([v, d]) => {
+              const vObj   = getObj(v);
+              const fcPct  = (d.fc  / vObj) * 100;
+              const wonPct = (d.won / vObj) * 100;
+              const totPct = d.won > 0 ? ((d.won + d.fc) / vObj) * 100 : fcPct;
+              const rowBg  = wonPct >= 100 ? 'rgba(2,122,72,.04)' : fcPct >= 90 ? 'rgba(181,71,8,.03)' : 'transparent';
+              const wonLabel = d.wonN > 0
+                ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px">🏆 Ya cumplió ${wonPct.toFixed(1)}% con ventas cerradas</div>`
+                : '';
+              return `<tr style="background:${rowBg}">
+                <td>${rAva(v)}${wonLabel}</td>
+                <td class="tm ar" style="color:#6c7585">${$A(vObj)}</td>
+                <td class="tm ar" style="color:#0a0d14;font-weight:700">${d.fc > 0 ? $A(d.fc) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.fcN} deal${d.fcN!==1?'s':''}</div></td>
+                <td class="tm ar" style="color:#027a48;font-weight:700">${d.won > 0 ? $A(d.won) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.wonN} deal${d.wonN!==1?'s':''}</div></td>
+                ${pctCell(wonPct, true)}
+                ${pctCell(fcPct, false)}
+                ${pctCell(totPct, false)}
+                <td>${stBadge(fcPct)}</td>
+                <td>${stBadge(wonPct)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f0f2f5;border-top:2px solid #e4e7ec">
+              <td style="font-weight:700;color:#0a0d14;font-size:12px">📊 Total equipo</td>
+              <td class="tm ar" style="color:#6c7585">${$A(totalObj)}</td>
+              <td class="tm ar" style="color:#1a56db;font-weight:800">${$A(totalFc)}</td>
+              <td class="tm ar" style="color:#027a48;font-weight:800">${$A(totalWon)}</td>
+              ${pctCell(avgWonPct, true)}
+              ${pctCell(avgFcPct, false)}
+              ${pctCell(avgTotPct, false)}
+              <td colspan="2" style="color:#6c7585;font-size:10px">Promedio equipo</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div style="margin-top:14px;padding:14px 16px;background:#f8f9fb;border:1px solid #e4e7ec;border-radius:10px;font-size:11px;line-height:1.8;color:#3d4451">
+          <div style="font-weight:700;font-size:12px;color:#0a0d14;margin-bottom:8px">📝 Análisis ejecutivo — ${label}</div>
+          ${(() => {
+            const cumplidos = vendorRows.filter(([v, d]) => (d.won / getObj(v)) * 100 >= 100);
+            const enCamino  = vendorRows.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return rp < 100 && fp >= 100; });
+            const cerca     = vendorRows.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return fp >= 90 && fp < 100 && rp < 100; });
+            const debajo    = vendorRows.filter(([v, d]) => { const o=getObj(v); return (d.fc/o)*100 < 60 && (d.won/o)*100 < 60; });
+            const lines = [];
+            if (cumplidos.length) lines.push(`✅ <strong>${cumplidos.map(([v])=>v).join(', ')}</strong> ya cumplieron su cuota con tratos ganados.`);
+            if (enCamino.length)  lines.push(`🎯 <strong>${enCamino.map(([v])=>v).join(', ')}</strong> llegarían al objetivo si cierran sus deals forecasteados.`);
+            if (cerca.length)     lines.push(`⚡ <strong>${cerca.map(([v])=>v).join(', ')}</strong> están cerca (≥90% en forecast) — seguimiento clave.`);
+            if (debajo.length)    lines.push(`⚠️ <strong>${debajo.map(([v])=>v).join(', ')}</strong> necesitan reforzar el pipeline — por debajo del 60%.`);
+            lines.push(`📈 El equipo tiene <strong>${$A(totalWon)}</strong> en ventas cerradas y <strong>${$A(totalFc)}</strong> forecasteado para el período.`);
+            lines.push(`📊 % real promedio: <strong style="color:${avgWonPct>=100?'#027a48':'#b42318'}">${avgWonPct.toFixed(1)}%</strong> · % forecast promedio: <strong style="color:${avgFcPct>=100?'#027a48':avgFcPct>=60?'#1a56db':'#b42318'}">${avgFcPct.toFixed(1)}%</strong>`);
+            return lines.map(l => `<div style="padding:3px 0;border-bottom:1px solid #eef0f4">${l}</div>`).join('');
+          })()}
+        </div>`;
+      }
 
       // Cards por funnel con desglose por vendedor
       document.getElementById('fc-cards').innerHTML = funnels.map(f => {
@@ -3391,11 +3594,22 @@
     }
 
     function renderFcTable() {
-      const { s, e } = getFcRange();
+      const range = getFcRange();
+      const { s, e } = range;
       const pf = document.getElementById('fc-pf')?.value;
       const vf = document.getElementById('fc-vf')?.value;
       const af = document.getElementById('fc-af')?.value;
-      let deals = S.open.filter(d => { if (!d.expected_close_date) return false; const c = new Date(d.expected_close_date); return c >= s && c <= e; });
+      let deals = S.open.filter(d => {
+        if (!d.expected_close_date) return false;
+        if (range.filterMonth !== undefined && range.filterYear !== undefined) {
+          const parts = d.expected_close_date.split('-');
+          const dm = parseInt(parts[1]) - 1;
+          const dy = parseInt(parts[0]);
+          return dm === range.filterMonth && dy === range.filterYear;
+        }
+        const c = new Date(d.expected_close_date);
+        return c >= s && c <= e;
+      });
       if (pf) deals = deals.filter(d => String(d.pipeline_id) === pf);
       if (vf) deals = deals.filter(d => gv(d) === vf);
       if (af) deals = deals.filter(d => actSt(d) === af);
