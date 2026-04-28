@@ -2400,9 +2400,33 @@
           <!-- Ganados este mes en Desarrollo -->
           <div class="card">
             <div class="sh">
-              <div class="sh-t">🏆 Ganados Este Mes
+              <div class="sh-t">🏆 Ganados — Desarrollo
                 <span class="chip cg" id="dev-won-count">0 deals</span>
               </div>
+            </div>
+            <div class="fr" style="margin-bottom:10px">
+              <label>Vendedor:</label>
+              <select id="dev-won-v" onchange="renderDevWon()">
+                <option value="">Todos</option>
+              </select>
+              <label>Mes:</label>
+              <select id="dev-won-m" onchange="renderDevWon()">
+                <option value="">Todos</option>
+                <option value="0">Ene</option>
+                <option value="1">Feb</option>
+                <option value="2">Mar</option>
+                <option value="3">Abr</option>
+                <option value="4">May</option>
+                <option value="5">Jun</option>
+                <option value="6">Jul</option>
+                <option value="7">Ago</option>
+                <option value="8">Sep</option>
+                <option value="9">Oct</option>
+                <option value="10">Nov</option>
+                <option value="11">Dic</option>
+              </select>
+              <label>Año:</label>
+              <select id="dev-won-y" onchange="renderDevWon()"></select>
             </div>
             <div id="dev-won-total" style="font-size:20px;font-weight:800;
               color:#027a48;font-family:'JetBrains Mono',monospace;
@@ -2430,6 +2454,30 @@
           <div class="sh-t">🗂️ Pipeline Abierto — Desarrollo de Cuentas
             <span class="chip cgr" id="dev-open-count">0</span>
           </div>
+        </div>
+        <div class="fr">
+          <label>Vendedor:</label>
+          <select id="dev-open-v" onchange="renderDevOpen()">
+            <option value="">Todos</option>
+          </select>
+          <label>Mes cierre:</label>
+          <select id="dev-open-m" onchange="renderDevOpen()">
+            <option value="">Todos</option>
+            <option value="0">Ene</option>
+            <option value="1">Feb</option>
+            <option value="2">Mar</option>
+            <option value="3">Abr</option>
+            <option value="4">May</option>
+            <option value="5">Jun</option>
+            <option value="6">Jul</option>
+            <option value="7">Ago</option>
+            <option value="8">Sep</option>
+            <option value="9">Oct</option>
+            <option value="10">Nov</option>
+            <option value="11">Dic</option>
+          </select>
+          <label>Año:</label>
+          <select id="dev-open-y" onchange="renderDevOpen()"></select>
         </div>
         <div class="tw">
           <table>
@@ -2953,60 +3001,38 @@
             </div>`).join('')
         : '<div class="empty">Sin deals con cierre este mes</div>';
 
-      // ── GANADOS MES ──
-      document.getElementById('dev-won-count').textContent = wonM.length + ' deals';
-      document.getElementById('dev-won-total').textContent = $A(sumA(wonM));
+      // ── Poblar selects de vendedor y año ──
+      const wonVendors  = [...new Set(S.devWon.map(d => gv(d)).filter(v => v && v !== '—'))].sort();
+      const wonYears    = [...new Set(S.devWon.map(d => d.won_time && new Date(d.won_time).getFullYear()).filter(Boolean))].sort((a, b) => b - a);
+      const openVendors = [...new Set(S.devOpen.map(d => gv(d)).filter(v => v && v !== '—'))].sort();
+      const openYears   = [...new Set(S.devOpen.map(d => d.expected_close_date && parseInt(d.expected_close_date.split('-')[0])).filter(Boolean))].sort((a, b) => b - a);
 
-      const tbWon = document.getElementById('tbl-dev-won');
-      tbWon.innerHTML = wonM.length
-        ? wonM
-          .sort((a, b) => new Date(b.won_time) - new Date(a.won_time))
-          .map(d => `<tr>
-              <td class="tb">${d.title || '—'}</td>
-              <td>${d.org_name || '—'}</td>
-              <td>${gv(d)}</td>
-              <td class="tm" style="color:#027a48;font-weight:700">
-                ${fc(d)}
-              </td>
-              <td class="tm">${fd(d.won_time)}</td>
-            </tr>`).join('')
-        : '<tr><td colspan="5" class="empty">Sin deals ganados este mes</td></tr>';
+      const selWonV  = document.getElementById('dev-won-v');
+      const selWonY  = document.getElementById('dev-won-y');
+      const selOpenV = document.getElementById('dev-open-v');
+      const selOpenY = document.getElementById('dev-open-y');
 
-      // ── PIPELINE ABIERTO ──
-      document.getElementById('dev-open-count').textContent = open.length;
-      const tbOpen = document.getElementById('tbl-dev-open');
-      tbOpen.innerHTML = open.length
-        ? open
-          .sort((a, b) => toARS(b) - toARS(a))
-          .map(d => {
-            const days = dt(d.expected_close_date);
-            const ast = actSt(d);
-            const dc = days !== null && days < 0 ? '#b42318'
-              : days !== null && days <= 7 ? '#b54708'
-                : '#9aa1b1';
-            const at = ast === 'noact'
-              ? '<span class="tag tr">⚠ Sin act.</span>'
-              : ast === 'over'
-                ? '<span class="tag ty">🕐 Vencida</span>'
-                : '<span class="tag tg">✓ Al día</span>';
-            return `<tr>
-                <td class="tb" style="max-width:160px;overflow:hidden;
-                  text-overflow:ellipsis;white-space:nowrap">
-                  ${d.title || '—'}
-                </td>
-                <td>${d.org_name || '—'}</td>
-                <td>${gv(d)}</td>
-                <td style="color:#6c7585;font-size:10px">${gsn(d)}</td>
-                <td class="tm" style="color:#027a48;font-weight:700">
-                  ${fc(d)}
-                </td>
-                <td class="tm" style="color:${dc}">
-                  ${d.expected_close_date ? fd(d.expected_close_date) : '—'}
-                </td>
-                <td>${at}</td>
-              </tr>`;
-          }).join('')
-        : '<tr><td colspan="7" class="empty">Sin deals abiertos</td></tr>';
+      if (selWonV) {
+        const cur = selWonV.value;
+        selWonV.innerHTML = '<option value="">Todos</option>' + wonVendors.map(v => `<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+      }
+      if (selWonY) {
+        const cur = selWonY.value;
+        selWonY.innerHTML = wonYears.map(y => `<option value="${y}"${String(y)===cur?'':y===cy?' selected':''}>${y}</option>`).join('');
+        if (!selWonY.value) selWonY.value = cy;
+      }
+      if (selOpenV) {
+        const cur = selOpenV.value;
+        selOpenV.innerHTML = '<option value="">Todos</option>' + openVendors.map(v => `<option value="${v}"${v===cur?' selected':''}>${v}</option>`).join('');
+      }
+      if (selOpenY) {
+        const cur = selOpenY.value;
+        selOpenY.innerHTML = '<option value="">Todos</option>' + openYears.map(y => `<option value="${y}"${String(y)===cur?' selected':''}>${y}</option>`).join('');
+      }
+
+      // ── Render ganados y pipeline con filtros ──
+      renderDevWon();
+      renderDevOpen();
 
       // ── SIN ACTIVIDAD ──
       document.getElementById('dev-noact-count').textContent = noAct.length;
@@ -3024,6 +3050,75 @@
               <td style="color:#6c7585">${gsn(d)}</td>
             </tr>`).join('')
         : '<tr><td colspan="5" class="empty">✅ Todos tienen actividad</td></tr>';
+    }
+
+    function renderDevWon() {
+      const vf = document.getElementById('dev-won-v')?.value || '';
+      const mf = document.getElementById('dev-won-m')?.value;
+      const yf = parseInt(document.getElementById('dev-won-y')?.value) || new Date().getFullYear();
+
+      let rows = S.devWon.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        if (w.getFullYear() !== yf) return false;
+        if (mf !== '' && mf !== undefined && w.getMonth() !== parseInt(mf)) return false;
+        if (vf && gv(d) !== vf) return false;
+        return true;
+      });
+
+      document.getElementById('dev-won-count').textContent = rows.length + ' deals';
+      document.getElementById('dev-won-total').textContent = $A(sumA(rows));
+
+      const tb = document.getElementById('tbl-dev-won');
+      tb.innerHTML = rows.length
+        ? rows.sort((a, b) => new Date(b.won_time) - new Date(a.won_time)).map(d => `<tr>
+            <td class="tb">${d.title || '—'}</td>
+            <td>${d.org_name || '—'}</td>
+            <td>${gv(d)}</td>
+            <td class="tm" style="color:#027a48;font-weight:700">${fc(d)}</td>
+            <td class="tm">${fd(d.won_time)}</td>
+          </tr>`).join('')
+        : '<tr><td colspan="5" class="empty">Sin deals ganados</td></tr>';
+    }
+
+    function renderDevOpen() {
+      const vf = document.getElementById('dev-open-v')?.value || '';
+      const mf = document.getElementById('dev-open-m')?.value;
+      const yf = document.getElementById('dev-open-y')?.value;
+      let rows = S.devOpen;
+      if (vf) rows = rows.filter(d => gv(d) === vf);
+      if (yf || mf !== '') rows = rows.filter(d => {
+        if (!d.expected_close_date) return false;
+        const parts = d.expected_close_date.split('-');
+        const dy = parseInt(parts[0]);
+        const dm = parseInt(parts[1]) - 1;
+        if (yf && dy !== parseInt(yf)) return false;
+        if (mf !== '' && mf !== undefined && dm !== parseInt(mf)) return false;
+        return true;
+      });
+
+      document.getElementById('dev-open-count').textContent = rows.length;
+      const tb = document.getElementById('tbl-dev-open');
+      tb.innerHTML = rows.length
+        ? rows.sort((a, b) => (toA(b) - toA(a))).map(d => {
+            const days = dt(d.expected_close_date);
+            const ast = actSt(d);
+            const dc = days !== null && days < 0 ? '#b42318' : days !== null && days <= 7 ? '#b54708' : '#9aa1b1';
+            const at = ast === 'noact'
+              ? '<span class="tag tr">⚠ Sin act.</span>'
+              : ast === 'over' ? '<span class="tag ty">🕐 Vencida</span>'
+              : '<span class="tag tg">✓ Al día</span>';
+            return `<tr>
+              <td class="tb" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
+              <td>${d.org_name || '—'}</td>
+              <td>${gv(d)}</td>
+              <td style="color:#6c7585;font-size:10px">${gsn(d)}</td>
+              <td class="tm" style="color:#027a48;font-weight:700">${fc(d)}</td>
+              <td class="tm" style="color:${dc}">${d.expected_close_date ? fd(d.expected_close_date) : '—'}</td>
+              <td>${at}</td>
+            </tr>`;
+          }).join('')
+        : '<tr><td colspan="7" class="empty">Sin deals abiertos</td></tr>';
     }
 
     // ════════════════════════════════════════
