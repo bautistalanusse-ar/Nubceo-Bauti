@@ -2635,17 +2635,17 @@
     // ════════════════════════════════════════
     const VM = {
       219: 'Juan B', 279: 'Luciano R', 388: 'Lucia P', 389: 'Lucia P',
-      458: 'Mateo L', 516: 'Omar B', 519: 'Vanessa A', 520: 'Hernan P',
+      458: 'Mateo L', 519: 'Vanessa A', 520: 'Hernan P',
       528: 'Emiliana G', 529: 'Federico S', 530: 'Tomas G', 531: 'Magui R',
       532: 'Federico C', 533: 'Eduardo A', 534: 'Matias R', 535: 'Fernanda A', 536: 'Santiago S',
       // Pablo A y Pablo I — actualizar IDs cuando estén disponibles en Pipedrive
       // 537: 'Pablo A', 538: 'Pablo I'
     };
     // Core team (shown in ranking)
-    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Omar B', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo A', 'Pablo I'];
+    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo A', 'Pablo I'];
     const TEAM_COLORS = {
       'Hernan P': '#1a56db', 'Mateo L': '#027a48', 'Juan B': '#5925dc',
-      'Luciano R': '#b54708', 'Lucia P': '#b42318', 'Omar B': '#0891b2',
+      'Luciano R': '#b54708', 'Lucia P': '#b42318',
       'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706',
       'Pablo A': '#0e7490', 'Pablo I': '#15803d'
     };
@@ -3003,7 +3003,7 @@
 
       // ── Poblar selects de vendedor y año ──
       const wonVendors  = [...new Set(S.devWon.map(d => gv(d)).filter(v => v && v !== '—'))].sort();
-      const wonYears    = [...new Set(S.devWon.map(d => d.won_time && new Date(d.won_time).getFullYear()).filter(Boolean))].sort((a, b) => b - a);
+      const wonYears    = [...new Set(S.devWon.map(d => d.won_time && parseInt(d.won_time.split('-')[0])).filter(Boolean))].sort((a, b) => b - a);
       const openVendors = [...new Set(S.devOpen.map(d => gv(d)).filter(v => v && v !== '—'))].sort();
       const openYears   = [...new Set(S.devOpen.map(d => d.expected_close_date && parseInt(d.expected_close_date.split('-')[0])).filter(Boolean))].sort((a, b) => b - a);
 
@@ -3059,9 +3059,11 @@
 
       let rows = S.devWon.filter(d => {
         if (!d.won_time) return false;
-        const w = new Date(d.won_time);
-        if (w.getFullYear() !== yf) return false;
-        if (mf !== '' && mf !== undefined && w.getMonth() !== parseInt(mf)) return false;
+        const parts = d.won_time.split('-');
+        const wy = parseInt(parts[0], 10);
+        const wm = parseInt(parts[1], 10) - 1;
+        if (yf && wy !== yf) return false;
+        if (mf !== '' && mf !== undefined && wm !== parseInt(mf, 10)) return false;
         if (vf && gv(d) !== vf) return false;
         return true;
       });
@@ -3504,7 +3506,7 @@
 
       // ── Tabla Forecast vs Objetivo por Comercial ──
       const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || 6000000;
-      const UY_VENDORS = new Set(['Vanessa A', 'Omar B', 'Lucia P', 'Pablo I']);
+      const UY_VENDORS = new Set(['Vanessa A', 'Lucia P', 'Pablo I']);
       const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
       const getObj = (v) => UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
       const byVendor = {};
