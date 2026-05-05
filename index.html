@@ -2371,6 +2371,43 @@
             <tbody id="tbl-fc"></tbody>
           </table>
         </div>
+
+        <!-- ══ FORECAST HISTÓRICO ══ -->
+        <div style="margin-top:24px;padding-top:18px;border-top:2px solid var(--bdr)">
+          <div class="sh">
+            <div class="sh-t">📸 Forecast Histórico
+              <span class="chip cb" id="hist-snap-chip">0 snapshots</span>
+            </div>
+            <div style="font-size:10px;color:var(--mt)" id="hist-snap-info">Se guarda automáticamente al cargar</div>
+          </div>
+
+          <div class="fr" style="margin-bottom:10px">
+            <label>Ver snapshot del día:</label>
+            <input type="date" id="hist-date" onchange="renderHistForecast()"
+              style="padding:6px 9px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:11px;outline:none;font-family:inherit;color:var(--tx)">
+            <label>Forecast de:</label>
+            <select id="hist-fc-m" onchange="renderHistForecast()"
+              style="padding:6px 9px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:11px;outline:none;font-family:inherit">
+              <option value="0">Enero</option><option value="1">Febrero</option>
+              <option value="2">Marzo</option><option value="3">Abril</option>
+              <option value="4">Mayo</option><option value="5">Junio</option>
+              <option value="6">Julio</option><option value="7">Agosto</option>
+              <option value="8">Septiembre</option><option value="9">Octubre</option>
+              <option value="10">Noviembre</option><option value="11">Diciembre</option>
+            </select>
+            <select id="hist-fc-y" onchange="renderHistForecast()"
+              style="padding:6px 9px;background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--rs);font-size:11px;outline:none;font-family:inherit"></select>
+          </div>
+
+          <!-- Chips de días disponibles -->
+          <div id="hist-chips" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px"></div>
+
+          <!-- Resultado histórico -->
+          <div id="hist-content">
+            <div class="empty" style="padding:20px 0">Seleccioná un día para ver el forecast histórico</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- DESARROLLO DE CUENTAS -->
@@ -2771,7 +2808,7 @@
         setLd('Tipo de cambio…');
         await loadFX();
       } catch (e) { console.error(e); }
-      hideLd(); renderAll(); buildSels();
+      hideLd(); renderAll(); buildSels(); saveSnapshot(); initHistForecast();
       document.getElementById('sb-ts').textContent = 'Act: ' + new Date().toLocaleTimeString('es-AR');
       setRef(false);
     }
@@ -3834,6 +3871,201 @@
     function showLd(t) { document.getElementById('ld').classList.add('show'); setLd(t); }
     function hideLd() { document.getElementById('ld').classList.remove('show'); }
     function setLd(t) { document.getElementById('ld-tx').textContent = t; }
+
+    // ════════════════════════════════════════
+    // SNAPSHOTS HISTÓRICOS (localStorage)
+    // ════════════════════════════════════════
+    const SNAP_PREFIX = 'nubceo_snap_';
+    const SNAP_MAX = 90;
+
+    function slimDeal(d) {
+      const s = { i: d.id, t: d.title, o: d.org_name, v: d.value, c: d.currency,
+        p: d.pipeline_id, e: d.expected_close_date, w: d.won_time,
+        un: d.user_id?.name || d.owner_name };
+      if (d[VKEY] != null) s.vk = d[VKEY];
+      return s;
+    }
+
+    function expandDeal(s) {
+      const d = { id: s.i, title: s.t, org_name: s.o, value: s.v, currency: s.c,
+        pipeline_id: s.p, expected_close_date: s.e, won_time: s.w,
+        user_id: s.un ? { name: s.un } : null, owner_name: s.un };
+      d[VKEY] = s.vk;
+      return d;
+    }
+
+    function saveSnapshot() {
+      const today = new Date().toISOString().split('T')[0];
+      try {
+        const snap = {
+          ts: new Date().toISOString(),
+          open: S.open.map(slimDeal),
+          won:  S.won.map(slimDeal)
+        };
+        localStorage.setItem(SNAP_PREFIX + today, JSON.stringify(snap));
+        // Mantener solo los últimos SNAP_MAX días
+        const keys = Object.keys(localStorage)
+          .filter(k => k.startsWith(SNAP_PREFIX)).sort().reverse();
+        keys.slice(SNAP_MAX).forEach(k => localStorage.removeItem(k));
+      } catch(e) { console.warn('Snapshot no guardado:', e); }
+    }
+
+    function getSnapDates() {
+      return Object.keys(localStorage)
+        .filter(k => k.startsWith(SNAP_PREFIX))
+        .map(k => k.replace(SNAP_PREFIX, ''))
+        .sort().reverse();
+    }
+
+    function initHistForecast() {
+      const now = new Date();
+      const dates = getSnapDates();
+
+      // Chip contador
+      const chip = document.getElementById('hist-snap-chip');
+      if (chip) chip.textContent = dates.length + ' snapshot' + (dates.length !== 1 ? 's' : '');
+
+      // Select de año
+      const selY = document.getElementById('hist-fc-y');
+      if (selY) {
+        const cy = now.getFullYear();
+        selY.innerHTML = [cy + 1, cy, cy - 1].map(y =>
+          `<option value="${y}"${y === cy ? ' selected' : ''}>${y}</option>`).join('');
+      }
+
+      // Mes actual por defecto
+      const selM = document.getElementById('hist-fc-m');
+      if (selM) selM.value = now.getMonth();
+
+      // Fecha más reciente por defecto en el input
+      const dateInput = document.getElementById('hist-date');
+      if (dateInput) {
+        dateInput.max = now.toISOString().split('T')[0];
+        if (dates.length > 0 && !dateInput.value) dateInput.value = dates[0];
+      }
+
+      renderHistChips();
+      if (dates.length > 0) renderHistForecast();
+    }
+
+    function renderHistChips() {
+      const dates = getSnapDates();
+      const cur = document.getElementById('hist-date')?.value;
+      const el = document.getElementById('hist-chips');
+      if (!el) return;
+      el.innerHTML = dates.slice(0, 30).map(d => {
+        const sel = d === cur;
+        return `<span onclick="document.getElementById('hist-date').value='${d}';renderHistForecast()"
+          style="cursor:pointer;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;
+          background:${sel ? 'var(--bl)' : 'var(--sur3)'};color:${sel ? '#fff' : 'var(--tx2)'};
+          border:1.5px solid ${sel ? 'var(--bl)' : 'var(--bdr)'};">${d}</span>`;
+      }).join('');
+    }
+
+    function renderHistForecast() {
+      renderHistChips();
+      const dateStr = document.getElementById('hist-date')?.value;
+      const mf = parseInt(document.getElementById('hist-fc-m')?.value ?? new Date().getMonth());
+      const yf = parseInt(document.getElementById('hist-fc-y')?.value ?? new Date().getFullYear());
+      const el = document.getElementById('hist-content');
+      if (!el) return;
+
+      if (!dateStr) {
+        el.innerHTML = '<div class="empty" style="padding:20px 0">Seleccioná un día para ver el forecast histórico</div>';
+        return;
+      }
+
+      const raw = localStorage.getItem(SNAP_PREFIX + dateStr);
+      if (!raw) {
+        el.innerHTML = `<div class="empty" style="padding:16px 0">No hay snapshot guardado para el ${dateStr}</div>`;
+        return;
+      }
+
+      const snap = JSON.parse(raw);
+      const MN = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+      const snapOpen = snap.open.map(expandDeal);
+      const snapWon  = snap.won.map(expandDeal);
+
+      // Deals que ese día tenían cierre en el mes/año seleccionado
+      const fcDeals = snapOpen.filter(d => {
+        if (!d.expected_close_date) return false;
+        const pts = d.expected_close_date.split('-');
+        return parseInt(pts[0]) === yf && parseInt(pts[1]) - 1 === mf;
+      });
+
+      // Deals ganados ese mes en el snapshot
+      const wonDeals = snapWon.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        return w.getMonth() === mf && w.getFullYear() === yf;
+      });
+
+      const totalFc  = fcDeals.reduce((s, d) => s + toA(d), 0);
+      const totalWon = wonDeals.reduce((s, d) => s + toA(d), 0);
+      const snapTime = new Date(snap.ts).toLocaleString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+
+      el.innerHTML = `
+        <div style="font-size:11px;color:var(--mt);margin-bottom:10px">
+          Snapshot del <strong>${dateStr}</strong> (${snapTime}) · Forecast para <strong>${MN[mf]} ${yf}</strong>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+          <div class="kpi" style="min-width:140px;flex:1">
+            <div class="kpi-ico i-b">📅</div>
+            <div class="kpi-lb">Forecast ese día</div>
+            <div class="kpi-vl">${fcDeals.length}</div>
+            <div class="kpi-sb">${$A(totalFc)}</div>
+          </div>
+          <div class="kpi" style="min-width:140px;flex:1;border-top-color:#027a48">
+            <div class="kpi-ico i-g">🏆</div>
+            <div class="kpi-lb">Ganados ${MN[mf]}</div>
+            <div class="kpi-vl">${wonDeals.length}</div>
+            <div class="kpi-sb">${$A(totalWon)}</div>
+          </div>
+          <div class="kpi" style="min-width:140px;flex:1;border-top-color:#5925dc">
+            <div class="kpi-ico i-p">%</div>
+            <div class="kpi-lb">Conversión</div>
+            <div class="kpi-vl" style="font-size:20px">${totalFc > 0 ? Math.round((totalWon/totalFc)*100) : 0}%</div>
+            <div class="kpi-sb">${$A(totalWon)} / ${$A(totalFc)}</div>
+          </div>
+        </div>
+        ${fcDeals.length === 0
+          ? `<div class="empty">Sin deals forecasteados para ${MN[mf]} ${yf} en ese snapshot</div>`
+          : `<div class="tw"><table>
+          <thead><tr>
+            <th>Deal</th><th class="col-hide">Organización</th><th>Vendedor</th>
+            <th class="col-hide">Pipeline</th><th class="ar">Valor ARS</th>
+            <th>Cierre Est.</th><th>Estado actual</th>
+          </tr></thead>
+          <tbody>
+            ${fcDeals.sort((a,b) => toA(b)-toA(a)).map(d => {
+              const pm = PM[d.pipeline_id];
+              const nowOpen = S.open.find(x => x.id === d.id);
+              const nowWon  = S.won.find(x => x.id === d.id);
+              let status;
+              if (nowWon) {
+                status = `<span class="tag tg">✓ Ganado ${fd(nowWon.won_time)}</span>`;
+              } else if (nowOpen) {
+                const moved = nowOpen.expected_close_date && nowOpen.expected_close_date !== d.expected_close_date;
+                status = moved
+                  ? `<span class="tag ty">↻ Movido → ${fd(nowOpen.expected_close_date)}</span>`
+                  : `<span class="tag tb2">→ Abierto</span>`;
+              } else {
+                status = `<span class="tag tr">✗ Perdido/eliminado</span>`;
+              }
+              return `<tr>
+                <td class="tb">${d.title||'—'}</td>
+                <td class="col-hide">${d.org_name||'—'}</td>
+                <td>${gv(d)}</td>
+                <td class="col-hide">${pm?.flag||''} ${pm?.n||''}</td>
+                <td class="tm ar" style="color:#027a48;font-weight:700">${$A(toA(d))}</td>
+                <td class="tm">${fd(d.expected_close_date)}</td>
+                <td>${status}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table></div>`}
+      `;
+    }
   </script>
 </body>
 
