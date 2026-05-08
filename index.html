@@ -2709,18 +2709,28 @@
     // ════════════════════════════════════════
     // VENDOR RESOLVER — priority: custom field → owner
     // ════════════════════════════════════════
+    // Normaliza nombres de propietario al nombre canónico del equipo
+    const NAME_NORM = {
+      'pablo illich': 'Pablo I', 'pablo i': 'Pablo I',
+      'pablo a': 'Pablo A', 'pablo albornoz': 'Pablo A',
+    };
+    function normName(n) {
+      if (!n) return n;
+      return NAME_NORM[n.trim().toLowerCase()] || n.trim();
+    }
+
     function gv(d) {
       const raw = d[VKEY];
       if (raw != null && raw !== '') {
         if (typeof raw === 'object' && raw !== null) {
-          if (raw.label && raw.label.trim()) return raw.label.trim();
+          if (raw.label && raw.label.trim()) return normName(raw.label.trim());
           if (raw.id && VM[raw.id]) return VM[raw.id];
         }
         const id = parseInt(raw);
         if (!isNaN(id) && VM[id]) return VM[id];
-        if (typeof raw === 'string' && raw.trim() && isNaN(parseInt(raw))) return raw.trim();
+        if (typeof raw === 'string' && raw.trim() && isNaN(parseInt(raw))) return normName(raw.trim());
       }
-      return d.user_id?.name || d.owner_name || '—';
+      return normName(d.user_id?.name || d.owner_name) || '—';
     }
 
     // ════════════════════════════════════════
@@ -2802,7 +2812,7 @@
         ]);
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
-        S.devOpen = dedup(rawO.filter(d => d.pipeline_id === 158));
+        S.devOpen = rawO.filter(d => d.pipeline_id === 158);
         S.devWon = rawW.filter(d => d.pipeline_id === 158);
 
         setLd('Tipo de cambio…');
