@@ -2686,6 +2686,17 @@
       'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706',
       'Pablo A': '#0e7490', 'Pablo I': '#15803d'
     };
+    // Vendedores con fecha de baja — no aparecen en ranking/forecast a partir de esa fecha
+    const EX_TEAM = {
+      'Pablo I':    new Date(2026, 5, 1),  // baja desde Junio 2026
+      'Lucia P':    new Date(2026, 5, 1),
+      'Emiliana G': new Date(2026, 5, 1),
+    };
+    function isActive(v, refDate) {
+      const exit = EX_TEAM[v];
+      if (!exit) return true;
+      return (refDate || new Date()) < exit;
+    }
     const VKEY = '56886cd51be8dc1caeead05ed3d8cfb095c12afd';
     const OPEN_P = new Set([149, 151, 159]);
     const WON_P = new Set([29, 30, 31, 32, 149, 151, 156, 158, 159]);
@@ -3359,8 +3370,8 @@
         else if (v && v !== '—') { stats[v] = { rev: toA(d), deals: [d], cnt: 1, pipe: openByV[v] || 0 }; }
       });
 
-      // Sort by revenue descending, only show vendors with deals or team members
-      const sorted = Object.entries(stats).sort((a, b) => b[1].rev - a[1].rev);
+      // Sort by revenue descending, only show active vendors
+      const sorted = Object.entries(stats).filter(([v]) => isActive(v, now)).sort((a, b) => b[1].rev - a[1].rev);
 
       document.getElementById('rk-table').innerHTML = sorted.map(([v, d], i) => {
         const pct = Math.min((d.rev / obj) * 100, 100);
@@ -3553,7 +3564,7 @@
 
       // ── Tabla Forecast vs Objetivo por Comercial ──
       const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || 6000000;
-      const UY_VENDORS = new Set(['Vanessa A', 'Lucia P', 'Pablo I']);
+      const UY_VENDORS = new Set(['Vanessa A']);
       const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
       const getObj = (v) => UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
       const byVendor = {};
@@ -3583,7 +3594,7 @@
         byVendor[v].wonN++;
       });
 
-      const vendorRows = Object.entries(byVendor).sort((a, b) => (b[1].won + b[1].fc) - (a[1].won + a[1].fc));
+      const vendorRows = Object.entries(byVendor).filter(([v]) => isActive(v)).sort((a, b) => (b[1].won + b[1].fc) - (a[1].won + a[1].fc));
       const totalFc   = vendorRows.reduce((s, [, d]) => s + d.fc,  0);
       const totalWon  = vendorRows.reduce((s, [, d]) => s + d.won, 0);
       const totalObj  = vendorRows.reduce((s, [v]) => s + getObj(v), 0);
