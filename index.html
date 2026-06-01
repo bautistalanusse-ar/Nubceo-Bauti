@@ -2690,12 +2690,12 @@
       // 537: 'Pablo Arce', 538: 'Pablo I'
     };
     // Core team (shown in ranking)
-    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo Arce', 'Pablo I'];
+    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo Arce', 'Pablo I', 'Lionel F'];
     const TEAM_COLORS = {
       'Hernan P': '#1a56db', 'Mateo L': '#027a48', 'Juan B': '#5925dc',
       'Luciano R': '#b54708', 'Lucia P': '#b42318',
       'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706',
-      'Pablo Arce': '#0e7490', 'Pablo I': '#15803d'
+      'Pablo Arce': '#0e7490', 'Pablo I': '#15803d', 'Lionel F': '#0369a1'
     };
     // Vendedores con fecha de baja — no aparecen en ranking/forecast a partir de esa fecha
     const EX_TEAM = {
@@ -2735,6 +2735,7 @@
     const NAME_NORM = {
       'pablo illich': 'Pablo I', 'pablo i': 'Pablo I',
       'pablo a': 'Pablo Arce', 'pablo albornoz': 'Pablo Arce', 'pablo arce': 'Pablo Arce',
+      'lionel f': 'Lionel F', 'lionel fernandez': 'Lionel F', 'lionel fernandez conde': 'Lionel F',
     };
     function normName(n) {
       if (!n) return n;
