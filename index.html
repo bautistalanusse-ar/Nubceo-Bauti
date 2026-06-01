@@ -2835,9 +2835,9 @@
     }
 
     function loadFX() {
-      S.fx = { USD: 1400, UYU: 35 };
-      document.getElementById('fx-bar').innerHTML = `💱 <span class="fxv">USD $1.400</span> · <span class="fxv">UYU $35</span>`;
-      if (document.getElementById('mob-fx')) document.getElementById('mob-fx').innerHTML = `U$1.400 · U$S 35`;
+      S.fx = { USD: 1400, UYU: 40 };
+      document.getElementById('fx-bar').innerHTML = `💱 <span class="fxv">USD $1.400</span> · <span class="fxv">UYU $40</span>`;
+      if (document.getElementById('mob-fx')) document.getElementById('mob-fx').innerHTML = `U$1.400 · U$S 40`;
     }
 
     // ════════════════════════════════════════
@@ -2861,7 +2861,7 @@
         if (conv > orig * 100 && orig > 1000) return orig;
         return conv;
       }
-      const rate = cur === 'UYU' ? (S.fx.UYU || 35) : (S.fx[cur] || 1);
+      const rate = cur === 'UYU' ? (S.fx.UYU || 40) : (S.fx[cur] || 1);
       const converted = orig * rate;
       if (converted > orig * 100 && orig > 100000) return orig;
       return converted;
