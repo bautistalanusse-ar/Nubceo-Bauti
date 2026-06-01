@@ -2735,6 +2735,22 @@
       if (!exit) return true;
       return (refDate || new Date()) < exit;
     }
+    // Vendedores que empiezan a tener objetivo a partir de una fecha
+    const START_OBJ = {
+      'Lionel C': new Date(2026, 7, 1), // objetivo desde Agosto 2026
+    };
+    // Managers sin cuota fija
+    const NO_OBJ = new Set(['Juan B']);
+    const UY_VENDORS = new Set(['Vanessa A']);
+    const OBJ_DEFAULT_GLOBAL = 6000000;
+    // Retorna el objetivo de un vendedor para una fecha dada (considera START_OBJ)
+    function getObjAtDate(v, refDate, objVendor, objUY) {
+      if (NO_OBJ.has(v)) return 0;
+      const start = START_OBJ[v];
+      if (start && (refDate || new Date()) < start) return 0;
+      const uy = objUY || Math.round(4000 * ((window.S && S.fx && S.fx.USD) || 1400));
+      return UY_VENDORS.has(v) ? uy : (objVendor || OBJ_DEFAULT_GLOBAL);
+    }
     const VKEY = '56886cd51be8dc1caeead05ed3d8cfb095c12afd';
     const OPEN_P = new Set([149, 151, 159]);
     const WON_P = new Set([29, 30, 31, 32, 149, 151, 156, 158, 159]);
@@ -3395,7 +3411,8 @@
     // ════════════════════════════════════════
     function renderRanking() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear();
-      const obj = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT;
+      const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT_GLOBAL;
+      const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
 
       // Filtros
       const selMo = parseInt(document.getElementById('rk-m')?.value) || 0;
@@ -3403,6 +3420,8 @@
       const selFunnel = document.getElementById('rk-p')?.value || '';
       const filterMo = selMo > 0 ? selMo : cm + 1;
       const filterYr = selYr;
+      const periodRef = new Date(filterYr, filterMo - 1, 1);
+      const getObj = (v) => getObjAtDate(v, periodRef, OBJ_VENDOR, OBJ_UY);
 
       // Pipelines por país
       const FUNNEL_P = { ARG: new Set([29,30,151,158]), URY: new Set([31,32,149]), PAR: new Set([156,159]) };
@@ -3439,14 +3458,19 @@
       const sorted = Object.entries(stats).filter(([v]) => isActive(v, now)).sort((a, b) => b[1].rev - a[1].rev);
 
       document.getElementById('rk-table').innerHTML = sorted.map(([v, d], i) => {
-        const noObj = NO_OBJ.has(v);
-        const vObj = noObj ? 0 : getObj(v);
-        const pct = noObj || vObj === 0 ? 0 : Math.min((d.rev / vObj) * 100, 100);
+        const isManager = NO_OBJ.has(v);
+        const vObj = getObj(v);
+        const noObj = vObj === 0;
+        const pendingStart = !isManager && noObj && START_OBJ[v];
+        const pct = noObj ? 0 : Math.min((d.rev / vObj) * 100, 100);
         const over = !noObj && d.rev >= vObj;
         const bc = over ? '#027a48' : pct >= 60 ? '#1a56db' : '#ef4444';
         const rkCls = noObj ? '' : over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : ''));
         const pe = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`;
         const pc = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
+        const pctLabel = isManager ? `<div class="rk-s-pct" style="color:#9aa1b1;font-size:9px">Manager</div>`
+          : pendingStart ? `<div class="rk-s-pct" style="color:#1d4ed8;font-size:9px">Inicia Ago</div>`
+          : `<div class="rk-s-pct">${Math.round(pct)}%</div>`;
         return `<div class="rk-summary-row ${rkCls}">
       <div class="rk-pos-num ${pc}">${pe}</div>
       <div class="rk-s-name">
@@ -3455,23 +3479,36 @@
       </div>
       <div class="rk-s-pipe desk" title="Pipeline abierto">${$A(d.pipe)}</div>
       <div style="font-size:8px;color:#9aa1b1;margin-top:2px">${d.deals.length ? `🏆 Mayor deal: ` + d.deals.reduce((a, b) => toA(a) > toA(b) ? a : b, d.deals[0]).title : `Sin ganados`}</div>
-      ${noObj
-        ? `<div class="rk-s-bar"></div><div class="rk-s-pct" style="color:#9aa1b1;font-size:10px">Manager</div>`
-        : `<div class="rk-s-bar"><div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div></div>
-           <div class="rk-s-pct">${Math.round(pct)}%</div>`}
+      <div class="rk-s-bar">${noObj ? '' : `<div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div>`}</div>
+      ${pctLabel}
       <div class="rk-s-won">${$A(d.rev)}</div>
     </div>`;
       }).join('');
 
       document.getElementById('rk-cards').innerHTML = sorted.map(([v, d], i) => {
-        const noObj = NO_OBJ.has(v);
-        const vObj = noObj ? 0 : getObj(v);
-        const pct = noObj || vObj === 0 ? 0 : Math.min((d.rev / vObj) * 100, 100);
+        const isManager = NO_OBJ.has(v);
+        const vObj = getObj(v);
+        const noObj = vObj === 0;
+        const pendingStart = !isManager && noObj && START_OBJ[v];
+        const startLabel = pendingStart ? (() => { const sd=START_OBJ[v]; return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][sd.getMonth()]+' '+sd.getFullYear(); })() : '';
+        const pct = noObj ? 0 : Math.min((d.rev / vObj) * 100, 100);
         const over = !noObj && d.rev >= vObj;
         const bc = over ? 'pb-over' : pct >= 60 ? 'pb-near' : 'pb-low';
         const color = TEAM_COLORS[v] || '#1a56db';
         const ini = v.split(' ').map(w => w[0]).join('').toUpperCase();
         const rem = noObj ? 0 : Math.max(0, vObj - d.rev);
+        const objLabel = isManager ? 'Sin cuota' : pendingStart ? `Inicia ${startLabel}` : 'obj ' + $A(vObj);
+        const subLine = isManager
+          ? `<div style="font-size:10px;color:#9aa1b1;margin-bottom:8px">Manager — sin objetivo fijo</div>`
+          : pendingStart
+            ? `<div style="font-size:10px;color:#1d4ed8;margin-bottom:8px;font-weight:600">Objetivo activo desde ${startLabel}</div>`
+            : `<div class="pb-wrap">
+        <div class="pb-top">
+          <span>${over ? 'Objetivo cumplido' : $A(rem) + ' para llegar'}</span>
+          <span style="font-weight:700;color:${over ? '#027a48' : pct >= 60 ? '#1a56db' : '#b42318'}">${Math.round(pct)}%</span>
+        </div>
+        <div class="pb-track"><div class="pb-fill ${bc}" style="width:${pct}%"></div></div>
+      </div>`;
         return `<div class="rk-card${i === 0 ? ' winner' : ''}">
       <div class="rk-head">
         <div class="rk-avatar" style="background:${color}">${ini}</div>
@@ -3481,17 +3518,10 @@
         </div>
         <div style="text-align:right">
           <div class="rk-rev">${$A(d.rev)}</div>
-          <div class="rk-obj">${noObj ? 'Sin cuota' : 'obj ' + $A(vObj)}</div>
+          <div class="rk-obj">${objLabel}</div>
         </div>
       </div>
-      ${noObj ? `<div style="font-size:10px;color:#9aa1b1;margin-bottom:8px">Manager — sin objetivo fijo</div>`
-        : `<div class="pb-wrap">
-        <div class="pb-top">
-          <span>${over ? 'Objetivo cumplido' : $A(rem) + ' para llegar'}</span>
-          <span style="font-weight:700;color:${over ? '#027a48' : pct >= 60 ? '#1a56db' : '#b42318'}">${Math.round(pct)}%</span>
-        </div>
-        <div class="pb-track"><div class="pb-fill ${bc}" style="width:${pct}%"></div></div>
-      </div>`}
+      ${subLine}
       <div style="font-size:9px;color:#6c7585;margin-bottom:8px">Pipeline abierto: <strong style="color:#0a0d14">${$A(d.pipe)}</strong></div>
       ${d.deals.length ? `<div class="rk-deals">
         <div style="font-size:9px;font-weight:700;color:#6c7585;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ganados ${periodLabel}</div>
@@ -3635,11 +3665,12 @@
   </div>`;
 
       // ── Tabla Forecast vs Objetivo por Comercial ──
-      const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || 6000000;
-      const UY_VENDORS = new Set(['Vanessa A']);
+      const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT_GLOBAL;
       const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
-      const NO_OBJ = new Set(['Juan B']); // managers sin cuota fija
-      const getObj = (v) => NO_OBJ.has(v) ? 0 : UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
+      const periodRef = range.filterMonth !== undefined
+        ? new Date(range.filterYear, range.filterMonth, 1)
+        : new Date();
+      const getObj = (v) => getObjAtDate(v, periodRef, OBJ_VENDOR, OBJ_UY);
       const byVendor = {};
       TEAM.forEach(v => { byVendor[v] = { fc: 0, fcN: 0, won: 0, wonN: 0 }; });
       // Forecast (deals abiertos del período)
@@ -3724,6 +3755,11 @@
             ${vendorRows.map(([v, d]) => {
               const vObj   = getObj(v);
               const noObj  = vObj === 0;
+              const isManager = NO_OBJ.has(v);
+              const pendingStart = !isManager && noObj && START_OBJ[v]; // sin objetivo aún por fecha de inicio
+              const startLabel = pendingStart
+                ? (() => { const d2=START_OBJ[v]; return ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][d2.getMonth()]+' '+d2.getFullYear(); })()
+                : '';
               const fcPct  = noObj ? 0 : (d.fc  / vObj) * 100;
               const wonPct = noObj ? 0 : (d.won / vObj) * 100;
               const totPct = noObj ? 0 : (d.won > 0 ? ((d.won + d.fc) / vObj) * 100 : fcPct);
@@ -3731,13 +3767,19 @@
               const wonLabel = d.wonN > 0
                 ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px">🏆 ${noObj ? 'Cerró ' + d.wonN + ' deal' + (d.wonN!==1?'s':'') : 'Ya cumplió ' + wonPct.toFixed(1) + '% con ventas cerradas'}</div>`
                 : '';
+              const objCell = isManager
+                ? '<span style="color:#9aa1b1;font-size:10px">Sin cuota</span>'
+                : pendingStart
+                  ? `<span style="color:#0369a1;font-size:10px;font-weight:600">Inicia ${startLabel}</span>`
+                  : $A(vObj);
+              const fcBadge = isManager ? '<span class="tag tb2">Manager</span>' : pendingStart ? `<span style="background:#dbeafe;color:#1d4ed8;font-size:9px;padding:2px 6px;border-radius:4px;font-weight:700">Inicia ${startLabel}</span>` : stBadge(fcPct);
               return `<tr style="background:${rowBg}">
                 <td>${rAva(v)}${wonLabel}</td>
-                <td class="tm ar" style="color:#6c7585">${noObj ? '<span style="color:#9aa1b1;font-size:10px">Sin cuota</span>' : $A(vObj)}</td>
+                <td class="tm ar" style="color:#6c7585">${objCell}</td>
                 <td class="tm ar" style="color:#0a0d14;font-weight:700">${d.fc > 0 ? $A(d.fc) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.fcN} deal${d.fcN!==1?'s':''}</div></td>
                 <td class="tm ar" style="color:#027a48;font-weight:700">${d.won > 0 ? $A(d.won) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.wonN} deal${d.wonN!==1?'s':''}</div></td>
                 ${noObj ? '<td class="ar" colspan="3" style="color:#9aa1b1;font-size:10px;text-align:center">—</td>' : pctCell(wonPct, true) + pctCell(fcPct, false) + pctCell(totPct, false)}
-                <td>${noObj ? '<span class="tag tb2">Manager</span>' : stBadge(fcPct)}</td>
+                <td>${fcBadge}</td>
                 <td>${noObj ? '—' : stBadge(wonPct)}</td>
               </tr>`;
             }).join('')}
@@ -3758,10 +3800,11 @@
         <div style="margin-top:14px;padding:14px 16px;background:#f8f9fb;border:1px solid #e4e7ec;border-radius:10px;font-size:11px;line-height:1.8;color:#3d4451">
           <div style="font-weight:700;font-size:12px;color:#0a0d14;margin-bottom:8px">📝 Análisis ejecutivo — ${label}</div>
           ${(() => {
-            const cumplidos = vendorRows.filter(([v, d]) => (d.won / getObj(v)) * 100 >= 100);
-            const enCamino  = vendorRows.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return rp < 100 && fp >= 100; });
-            const cerca     = vendorRows.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return fp >= 90 && fp < 100 && rp < 100; });
-            const debajo    = vendorRows.filter(([v, d]) => { const o=getObj(v); return (d.fc/o)*100 < 60 && (d.won/o)*100 < 60; });
+            const withObj   = vendorRows.filter(([v]) => getObj(v) > 0);
+            const cumplidos = withObj.filter(([v, d]) => (d.won / getObj(v)) * 100 >= 100);
+            const enCamino  = withObj.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return rp < 100 && fp >= 100; });
+            const cerca     = withObj.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return fp >= 90 && fp < 100 && rp < 100; });
+            const debajo    = withObj.filter(([v, d]) => { const o=getObj(v); return (d.fc/o)*100 < 60 && (d.won/o)*100 < 60; });
             const lines = [];
             if (cumplidos.length) lines.push(`✅ <strong>${cumplidos.map(([v])=>v).join(', ')}</strong> ya cumplieron su cuota con tratos ganados.`);
             if (enCamino.length)  lines.push(`🎯 <strong>${enCamino.map(([v])=>v).join(', ')}</strong> llegarían al objetivo si cierran sus deals forecasteados.`);
