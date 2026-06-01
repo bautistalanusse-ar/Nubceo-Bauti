@@ -2136,6 +2136,33 @@
               onchange="renderRanking()">
           </div>
         </div>
+        <!-- Filtros -->
+        <div class="fr" style="margin-bottom:14px">
+          <label>Mes:</label>
+          <select id="rk-m" onchange="renderRanking()">
+            <option value="0">Mes actual</option>
+            <option value="1">Ene</option>
+            <option value="2">Feb</option>
+            <option value="3">Mar</option>
+            <option value="4">Abr</option>
+            <option value="5">May</option>
+            <option value="6">Jun</option>
+            <option value="7">Jul</option>
+            <option value="8">Ago</option>
+            <option value="9">Sep</option>
+            <option value="10">Oct</option>
+            <option value="11">Nov</option>
+            <option value="12">Dic</option>
+          </select>
+          <label>Año:</label><select id="rk-y" onchange="renderRanking()"></select>
+          <label>Funnel:</label>
+          <select id="rk-p" onchange="renderRanking()">
+            <option value="">Todos</option>
+            <option value="ARG">🇦🇷 ARG</option>
+            <option value="URY">🇺🇾 URY</option>
+            <option value="PAR">🇵🇾 PAR</option>
+          </select>
+        </div>
         <!-- Tabla resumen -->
         <div class="sh">
           <div class="sh-t">📊 Tabla de Posiciones</div>
@@ -2776,11 +2803,18 @@
       buildYSel(now.getFullYear());
       document.getElementById('obj-period').textContent =
         now.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+      buildRkYSel(now.getFullYear());
       initFcYearSelects();
       onFcPeriodChange();
     });
     function buildYSel(y) {
       const s = document.getElementById('f-y');
+      for (let i = y; i >= y - 3; i--) { const o = document.createElement('option'); o.value = i; o.textContent = i; if (i === y) o.selected = true; s.appendChild(o); }
+    }
+    function buildRkYSel(y) {
+      const s = document.getElementById('rk-y');
+      if (!s) return;
+      s.innerHTML = '';
       for (let i = y; i >= y - 3; i--) { const o = document.createElement('option'); o.value = i; o.textContent = i; if (i === y) o.selected = true; s.appendChild(o); }
     }
 
@@ -3362,16 +3396,35 @@
     function renderRanking() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear();
       const obj = parseInt(document.getElementById('obj-input')?.value) || OBJ_DEFAULT;
+
+      // Filtros
+      const selMo = parseInt(document.getElementById('rk-m')?.value) || 0;
+      const selYr = parseInt(document.getElementById('rk-y')?.value) || cy;
+      const selFunnel = document.getElementById('rk-p')?.value || '';
+      const filterMo = selMo > 0 ? selMo : cm + 1;
+      const filterYr = selYr;
+
+      // Pipelines por país
+      const FUNNEL_P = { ARG: new Set([29,30,151,158]), URY: new Set([31,32,149]), PAR: new Set([156,159]) };
+      const inFunnel = (pid) => selFunnel ? (FUNNEL_P[selFunnel]?.has(pid) || false) : true;
+
+      const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const periodLabel = `${MN[filterMo-1]} ${filterYr}`;
       document.getElementById('obj-label').textContent = '$' + obj.toLocaleString('es-AR') + ' ARS por vendedor';
+      document.getElementById('obj-period').textContent = periodLabel;
 
       const wonM = S.won.filter(d => {
         if (!d.won_time) return false;
         const w = new Date(d.won_time);
-        return w.getMonth() === cm && w.getFullYear() === cy;
+        if (w.getMonth() + 1 !== filterMo || w.getFullYear() !== filterYr) return false;
+        return inFunnel(d.pipeline_id);
       });
 
       const openByV = {};
-      S.open.forEach(d => { const v = gv(d); if (v && v !== '—') { if (!openByV[v]) openByV[v] = 0; openByV[v] += toA(d); } });
+      S.open.forEach(d => {
+        if (!inFunnel(d.pipeline_id)) return;
+        const v = gv(d); if (v && v !== '—') { if (!openByV[v]) openByV[v] = 0; openByV[v] += toA(d); }
+      });
 
       // Build stats only for TEAM members
       const stats = {};
@@ -3386,10 +3439,12 @@
       const sorted = Object.entries(stats).filter(([v]) => isActive(v, now)).sort((a, b) => b[1].rev - a[1].rev);
 
       document.getElementById('rk-table').innerHTML = sorted.map(([v, d], i) => {
-        const pct = Math.min((d.rev / obj) * 100, 100);
-        const over = d.rev >= obj;
+        const noObj = NO_OBJ.has(v);
+        const vObj = noObj ? 0 : getObj(v);
+        const pct = noObj || vObj === 0 ? 0 : Math.min((d.rev / vObj) * 100, 100);
+        const over = !noObj && d.rev >= vObj;
         const bc = over ? '#027a48' : pct >= 60 ? '#1a56db' : '#ef4444';
-        const rkCls = over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : ''));
+        const rkCls = noObj ? '' : over ? 'rk-win' : (pct >= 80 ? 'rk-near' : (pct < 30 ? 'rk-low' : ''));
         const pe = i === 0 ? '1' : i === 1 ? '2' : i === 2 ? '3' : `${i + 1}`;
         const pc = i === 0 ? 'p1' : i === 1 ? 'p2' : i === 2 ? 'p3' : '';
         return `<div class="rk-summary-row ${rkCls}">
@@ -3400,19 +3455,23 @@
       </div>
       <div class="rk-s-pipe desk" title="Pipeline abierto">${$A(d.pipe)}</div>
       <div style="font-size:8px;color:#9aa1b1;margin-top:2px">${d.deals.length ? `🏆 Mayor deal: ` + d.deals.reduce((a, b) => toA(a) > toA(b) ? a : b, d.deals[0]).title : `Sin ganados`}</div>
-      <div class="rk-s-bar"><div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div></div>
-      <div class="rk-s-pct">${Math.round(pct)}%</div>
+      ${noObj
+        ? `<div class="rk-s-bar"></div><div class="rk-s-pct" style="color:#9aa1b1;font-size:10px">Manager</div>`
+        : `<div class="rk-s-bar"><div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div></div>
+           <div class="rk-s-pct">${Math.round(pct)}%</div>`}
       <div class="rk-s-won">${$A(d.rev)}</div>
     </div>`;
       }).join('');
 
       document.getElementById('rk-cards').innerHTML = sorted.map(([v, d], i) => {
-        const pct = Math.min((d.rev / obj) * 100, 100);
-        const over = d.rev >= obj;
+        const noObj = NO_OBJ.has(v);
+        const vObj = noObj ? 0 : getObj(v);
+        const pct = noObj || vObj === 0 ? 0 : Math.min((d.rev / vObj) * 100, 100);
+        const over = !noObj && d.rev >= vObj;
         const bc = over ? 'pb-over' : pct >= 60 ? 'pb-near' : 'pb-low';
         const color = TEAM_COLORS[v] || '#1a56db';
         const ini = v.split(' ').map(w => w[0]).join('').toUpperCase();
-        const rem = Math.max(0, obj - d.rev);
+        const rem = noObj ? 0 : Math.max(0, vObj - d.rev);
         return `<div class="rk-card${i === 0 ? ' winner' : ''}">
       <div class="rk-head">
         <div class="rk-avatar" style="background:${color}">${ini}</div>
@@ -3422,25 +3481,26 @@
         </div>
         <div style="text-align:right">
           <div class="rk-rev">${$A(d.rev)}</div>
-          <div class="rk-obj">obj ${$A(obj)}</div>
+          <div class="rk-obj">${noObj ? 'Sin cuota' : 'obj ' + $A(vObj)}</div>
         </div>
       </div>
-      <div class="pb-wrap">
+      ${noObj ? `<div style="font-size:10px;color:#9aa1b1;margin-bottom:8px">Manager — sin objetivo fijo</div>`
+        : `<div class="pb-wrap">
         <div class="pb-top">
           <span>${over ? 'Objetivo cumplido' : $A(rem) + ' para llegar'}</span>
           <span style="font-weight:700;color:${over ? '#027a48' : pct >= 60 ? '#1a56db' : '#b42318'}">${Math.round(pct)}%</span>
         </div>
         <div class="pb-track"><div class="pb-fill ${bc}" style="width:${pct}%"></div></div>
-      </div>
+      </div>`}
       <div style="font-size:9px;color:#6c7585;margin-bottom:8px">Pipeline abierto: <strong style="color:#0a0d14">${$A(d.pipe)}</strong></div>
       ${d.deals.length ? `<div class="rk-deals">
-        <div style="font-size:9px;font-weight:700;color:#6c7585;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ganados este mes</div>
+        <div style="font-size:9px;font-weight:700;color:#6c7585;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ganados ${periodLabel}</div>
         ${d.deals.slice(0, 4).map(dl => `<div class="rk-deal-row">
           <span class="rk-deal-name">${dl.title || '—'}</span>
           <span class="rk-deal-val">${$A(toA(dl))}</span>
         </div>`).join('')}
         ${d.deals.length > 4 ? `<div class="rk-more">+${d.deals.length - 4} más</div>` : ''}
-      </div>`: '<div style="font-size:10px;color:#9aa1b1;margin-top:6px">Sin deals ganados este mes</div>'}
+      </div>`: `<div style="font-size:10px;color:#9aa1b1;margin-top:6px">Sin deals ganados en ${periodLabel}</div>`}
     </div>`;
       }).join('');
     }
