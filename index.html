@@ -2675,16 +2675,16 @@
       458: 'Mateo L', 519: 'Vanessa A', 520: 'Hernan P',
       528: 'Emiliana G', 529: 'Federico S', 530: 'Tomas G', 531: 'Magui R',
       532: 'Federico C', 533: 'Eduardo A', 534: 'Matias R', 535: 'Fernanda A', 536: 'Santiago S',
-      // Pablo A y Pablo I — actualizar IDs cuando estén disponibles en Pipedrive
-      // 537: 'Pablo A', 538: 'Pablo I'
+      // Pablo Arce y Pablo I — actualizar IDs cuando estén disponibles en Pipedrive
+      // 537: 'Pablo Arce', 538: 'Pablo I'
     };
     // Core team (shown in ranking)
-    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo A', 'Pablo I'];
+    const TEAM = ['Hernan P', 'Mateo L', 'Juan B', 'Luciano R', 'Lucia P', 'Vanessa A', 'Emiliana G', 'Federico S', 'Pablo Arce', 'Pablo I'];
     const TEAM_COLORS = {
       'Hernan P': '#1a56db', 'Mateo L': '#027a48', 'Juan B': '#5925dc',
       'Luciano R': '#b54708', 'Lucia P': '#b42318',
       'Vanessa A': '#7c3aed', 'Emiliana G': '#be185d', 'Federico S': '#d97706',
-      'Pablo A': '#0e7490', 'Pablo I': '#15803d'
+      'Pablo Arce': '#0e7490', 'Pablo I': '#15803d'
     };
     // Vendedores con fecha de baja — no aparecen en ranking/forecast a partir de esa fecha
     const EX_TEAM = {
@@ -2723,7 +2723,7 @@
     // Normaliza nombres de propietario al nombre canónico del equipo
     const NAME_NORM = {
       'pablo illich': 'Pablo I', 'pablo i': 'Pablo I',
-      'pablo a': 'Pablo A', 'pablo albornoz': 'Pablo A',
+      'pablo a': 'Pablo Arce', 'pablo albornoz': 'Pablo Arce', 'pablo arce': 'Pablo Arce',
     };
     function normName(n) {
       if (!n) return n;
