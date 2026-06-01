@@ -3429,7 +3429,7 @@
 
       const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       const periodLabel = `${MN[filterMo-1]} ${filterYr}`;
-      document.getElementById('obj-label').textContent = '$' + obj.toLocaleString('es-AR') + ' ARS por vendedor';
+      document.getElementById('obj-label').textContent = '$' + OBJ_VENDOR.toLocaleString('es-AR') + ' ARS por vendedor';
       document.getElementById('obj-period').textContent = periodLabel;
 
       const wonM = S.won.filter(d => {
