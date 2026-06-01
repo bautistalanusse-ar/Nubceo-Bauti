@@ -2576,8 +2576,6 @@
       <!-- WON -->
       <div class="page" id="page-won">
         <div class="kpi-grid" id="kpi-won"></div>
-        <!-- Dashboard por vendedor -->
-        <div id="won-by-vendor" style="margin-bottom:16px"></div>
         <div class="fr">
           <label>Mes:</label>
           <select id="f-m" onchange="renderWon()">
@@ -3580,7 +3578,8 @@
       const OBJ_VENDOR = parseInt(document.getElementById('obj-input')?.value) || 6000000;
       const UY_VENDORS = new Set(['Vanessa A']);
       const OBJ_UY = Math.round(4000 * (S.fx.USD || 1400));
-      const getObj = (v) => UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
+      const NO_OBJ = new Set(['Juan B']); // managers sin cuota fija
+      const getObj = (v) => NO_OBJ.has(v) ? 0 : UY_VENDORS.has(v) ? OBJ_UY : OBJ_VENDOR;
       const byVendor = {};
       TEAM.forEach(v => { byVendor[v] = { fc: 0, fcN: 0, won: 0, wonN: 0 }; });
       // Forecast (deals abiertos del período)
@@ -3612,9 +3611,10 @@
       const totalFc   = vendorRows.reduce((s, [, d]) => s + d.fc,  0);
       const totalWon  = vendorRows.reduce((s, [, d]) => s + d.won, 0);
       const totalObj  = vendorRows.reduce((s, [v]) => s + getObj(v), 0);
-      const avgFcPct  = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + (d.fc  / getObj(v)) * 100, 0) / vendorRows.length : 0;
-      const avgWonPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + (d.won / getObj(v)) * 100, 0) / vendorRows.length : 0;
-      const avgTotPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + ((d.won > 0 ? d.won + d.fc : d.fc) / getObj(v)) * 100, 0) / vendorRows.length : 0;
+      const objRows   = vendorRows.filter(([v]) => !NO_OBJ.has(v));
+      const avgFcPct  = objRows.length ? objRows.reduce((s, [v, d]) => s + (d.fc  / getObj(v)) * 100, 0) / objRows.length : 0;
+      const avgWonPct = objRows.length ? objRows.reduce((s, [v, d]) => s + (d.won / getObj(v)) * 100, 0) / objRows.length : 0;
+      const avgTotPct = objRows.length ? objRows.reduce((s, [v, d]) => s + ((d.won > 0 ? d.won + d.fc : d.fc) / getObj(v)) * 100, 0) / objRows.length : 0;
 
       // Guardar snapshot mensual si es vista de mes
       if (range.filterMonth !== undefined && range.filterYear !== undefined) {
@@ -3663,23 +3663,22 @@
           <tbody>
             ${vendorRows.map(([v, d]) => {
               const vObj   = getObj(v);
-              const fcPct  = (d.fc  / vObj) * 100;
-              const wonPct = (d.won / vObj) * 100;
-              const totPct = d.won > 0 ? ((d.won + d.fc) / vObj) * 100 : fcPct;
-              const rowBg  = wonPct >= 100 ? 'rgba(2,122,72,.04)' : fcPct >= 90 ? 'rgba(181,71,8,.03)' : 'transparent';
+              const noObj  = vObj === 0;
+              const fcPct  = noObj ? 0 : (d.fc  / vObj) * 100;
+              const wonPct = noObj ? 0 : (d.won / vObj) * 100;
+              const totPct = noObj ? 0 : (d.won > 0 ? ((d.won + d.fc) / vObj) * 100 : fcPct);
+              const rowBg  = !noObj && wonPct >= 100 ? 'rgba(2,122,72,.04)' : !noObj && fcPct >= 90 ? 'rgba(181,71,8,.03)' : 'transparent';
               const wonLabel = d.wonN > 0
-                ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px">🏆 Ya cumplió ${wonPct.toFixed(1)}% con ventas cerradas</div>`
+                ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px">🏆 ${noObj ? 'Cerró ' + d.wonN + ' deal' + (d.wonN!==1?'s':'') : 'Ya cumplió ' + wonPct.toFixed(1) + '% con ventas cerradas'}</div>`
                 : '';
               return `<tr style="background:${rowBg}">
                 <td>${rAva(v)}${wonLabel}</td>
-                <td class="tm ar" style="color:#6c7585">${$A(vObj)}</td>
+                <td class="tm ar" style="color:#6c7585">${noObj ? '<span style="color:#9aa1b1;font-size:10px">Sin cuota</span>' : $A(vObj)}</td>
                 <td class="tm ar" style="color:#0a0d14;font-weight:700">${d.fc > 0 ? $A(d.fc) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.fcN} deal${d.fcN!==1?'s':''}</div></td>
                 <td class="tm ar" style="color:#027a48;font-weight:700">${d.won > 0 ? $A(d.won) : '<span style="color:#9aa1b1">—</span>'}<div style="font-size:9px;color:#9aa1b1">${d.wonN} deal${d.wonN!==1?'s':''}</div></td>
-                ${pctCell(wonPct, true)}
-                ${pctCell(fcPct, false)}
-                ${pctCell(totPct, false)}
-                <td>${stBadge(fcPct)}</td>
-                <td>${stBadge(wonPct)}</td>
+                ${noObj ? '<td class="ar" colspan="3" style="color:#9aa1b1;font-size:10px;text-align:center">—</td>' : pctCell(wonPct, true) + pctCell(fcPct, false) + pctCell(totPct, false)}
+                <td>${noObj ? '<span class="tag tb2">Manager</span>' : stBadge(fcPct)}</td>
+                <td>${noObj ? '—' : stBadge(wonPct)}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -3880,9 +3879,9 @@
       const ytd = S.won.filter(d => d.won_time && new Date(d.won_time).getFullYear() === dY);
       const qd = ytd.filter(d => Math.floor(new Date(d.won_time).getMonth() / 3) === cq);
       const md = S.won.filter(d => { if (!d.won_time) return false; const w = new Date(d.won_time); return (w.getMonth() + 1) === dM && w.getFullYear() === dY; });
-      const aW = md.filter(d => d.pipeline_id === 151);
-      const uW = md.filter(d => d.pipeline_id === 149);
-      const pW = md.filter(d => d.pipeline_id === 159);
+      const aW = md.filter(d => [29, 30, 151, 158].includes(d.pipeline_id));
+      const uW = md.filter(d => [31, 32, 149].includes(d.pipeline_id));
+      const pW = md.filter(d => [156, 159].includes(d.pipeline_id));
 
       const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       const periodLabel = mo ? `${MN[mo-1]} ${dY}` : `Todo ${dY}`;
@@ -3895,66 +3894,6 @@
     <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g">🇺🇾</div><div class="kpi-lb">URY ${periodLabel}</div><div class="kpi-vl">${uW.length}</div><div class="kpi-trend">${$A(sumA(uW))}</div></div>
     <div class="kpi" style="border-top-color:#b42318"><div class="kpi-ico i-r">🇵🇾</div><div class="kpi-lb">PAR ${periodLabel}</div><div class="kpi-vl">${pW.length}</div><div class="kpi-trend">${$A(sumA(pW))}</div></div>
   `;
-
-      // ── Dashboard por vendedor ──
-      // Usa todos los filtros EXCEPTO vendedor → siempre muestra el ranking completo del período
-      const dashDeals = S.won.filter(d => {
-        if (!d.won_time) return false;
-        const w = new Date(d.won_time);
-        if (yr && w.getFullYear() !== yr) return false;
-        if (mo && (w.getMonth() + 1) !== mo) return false;
-        if (pf && String(d.pipeline_id) !== pf) return false;
-        return true;
-      });
-
-      const byV = {};
-      dashDeals.forEach(d => {
-        const v = gv(d);
-        if (!byV[v]) byV[v] = { rev: 0, cnt: 0 };
-        byV[v].rev += toA(d);
-        byV[v].cnt++;
-      });
-      const vRows = Object.entries(byV).sort((a, b) => b[1].rev - a[1].rev);
-      const totalRev = vRows.reduce((s, [, d]) => s + d.rev, 0);
-
-      const wonByV = document.getElementById('won-by-vendor');
-      if (wonByV && vRows.length) {
-        wonByV.innerHTML = `
-          <div class="sh"><div class="sh-t">🏆 Revenue por Vendedor — ${periodLabel}
-            <span class="chip cg">${dashDeals.length} deals · ${$A(totalRev)}</span>
-          </div></div>
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:8px">
-            ${vRows.map(([v, d], i) => {
-              const pct = totalRev > 0 ? (d.rev / totalRev) * 100 : 0;
-              const color = TEAM_COLORS[v] || '#6c7585';
-              const ini = v.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-              const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i+1}`;
-              return `<div style="background:var(--sur);border:1.5px solid var(--bdr);border-radius:var(--r);
-                padding:12px 14px;border-left:4px solid ${color}">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                  <div style="display:flex;align-items:center;gap:8px">
-                    <div style="width:30px;height:30px;border-radius:50%;background:${color};
-                      display:flex;align-items:center;justify-content:center;
-                      font-size:11px;font-weight:700;color:#fff">${ini}</div>
-                    <div>
-                      <div style="font-size:12px;font-weight:700;color:var(--tx)">${v}</div>
-                      <div style="font-size:10px;color:var(--mt)">${d.cnt} deal${d.cnt!==1?'s':''}</div>
-                    </div>
-                  </div>
-                  <div style="text-align:right">
-                    <div style="font-size:13px;font-weight:800;color:${color};font-family:'JetBrains Mono',monospace">${$A(d.rev)}</div>
-                    <div style="font-size:10px;color:var(--mt)">${pct.toFixed(1)}% del total</div>
-                  </div>
-                </div>
-                <div style="height:5px;background:var(--sur3);border-radius:3px;overflow:hidden">
-                  <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;transition:width .3s"></div>
-                </div>
-              </div>`;
-            }).join('')}
-          </div>`;
-      } else if (wonByV) {
-        wonByV.innerHTML = '';
-      }
 
       const tb = document.getElementById('tbl-won');
       if (!fl.length) { tb.innerHTML = emptySt('🏆', 'Sin deals ganados', 'No hay comisiones en este rango'); return; }
