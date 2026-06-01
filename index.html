@@ -2289,6 +2289,17 @@
         </div>
         <div class="tw" id="fc-obj-table" style="margin-bottom:16px"></div>
 
+        <!-- Historial Mensual -->
+        <div class="sh" style="margin-top:4px">
+          <div class="sh-t">📅 Historial Mensual
+            <span class="chip cb" id="monthly-hist-chip">0 meses</span>
+          </div>
+        </div>
+        <div id="monthly-hist-months" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="monthly-hist-content">
+          <div class="empty" style="padding:16px 0">Los meses se van guardando automáticamente al cargar la página</div>
+        </div>
+
         <!-- Actividades vencidas vs futuras -->
         <div class="two-col" style="margin-top:4px">
           <div>
@@ -3602,6 +3613,15 @@
       const avgWonPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + (d.won / getObj(v)) * 100, 0) / vendorRows.length : 0;
       const avgTotPct = vendorRows.length ? vendorRows.reduce((s, [v, d]) => s + ((d.won > 0 ? d.won + d.fc : d.fc) / getObj(v)) * 100, 0) / vendorRows.length : 0;
 
+      // Guardar snapshot mensual si es vista de mes
+      if (range.filterMonth !== undefined && range.filterYear !== undefined) {
+        saveMonthlySnap(
+          vendorRows.map(([v, d]) => ({ v, obj: getObj(v), fc: d.fc, won: d.won, fcN: d.fcN, wonN: d.wonN })),
+          totalFc, totalWon, totalObj, label, range.filterMonth, range.filterYear
+        );
+        renderMonthlyHistory();
+      }
+
       const fcObjChip = document.getElementById('fc-obj-chip');
       if (fcObjChip) fcObjChip.textContent = `Obj ARG: ${$A(OBJ_VENDOR)} · UY: ${$A(OBJ_UY)}`;
 
@@ -3892,6 +3912,115 @@
     function showLd(t) { document.getElementById('ld').classList.add('show'); setLd(t); }
     function hideLd() { document.getElementById('ld').classList.remove('show'); }
     function setLd(t) { document.getElementById('ld-tx').textContent = t; }
+
+    // ════════════════════════════════════════
+    // HISTORIAL MENSUAL DE FORECAST
+    // ════════════════════════════════════════
+    const MONTHLY_PREFIX = 'nubceo_monthly_';
+
+    function saveMonthlySnap(rows, totalFc, totalWon, totalObj, label, m, y) {
+      const key = MONTHLY_PREFIX + y + '-' + String(m + 1).padStart(2, '0');
+      const now = new Date();
+      const isCurrentMonth = y === now.getFullYear() && m === now.getMonth();
+      const isPast = y < now.getFullYear() || (y === now.getFullYear() && m < now.getMonth());
+      // Si el mes ya pasó y ya hay un snapshot guardado, no sobreescribir
+      if (isPast && localStorage.getItem(key)) return;
+      try {
+        localStorage.setItem(key, JSON.stringify({ ts: now.toISOString(), label, m, y, rows, totalFc, totalWon, totalObj, final: isPast }));
+      } catch(e) { console.warn('Monthly snap error:', e); }
+    }
+
+    function getMonthlyDates() {
+      return Object.keys(localStorage)
+        .filter(k => k.startsWith(MONTHLY_PREFIX))
+        .map(k => k.replace(MONTHLY_PREFIX, ''))
+        .sort().reverse();
+    }
+
+    let _selMonth = null;
+
+    function renderMonthlyHistory(selectKey) {
+      const dates = getMonthlyDates();
+      const chip = document.getElementById('monthly-hist-chip');
+      if (chip) chip.textContent = dates.length + (dates.length === 1 ? ' mes' : ' meses');
+
+      if (!dates.length) return;
+
+      // Auto-seleccionar el más reciente si no hay selección
+      if (!_selMonth || !dates.includes(_selMonth)) _selMonth = dates[0];
+      if (selectKey) _selMonth = selectKey;
+
+      // Chips de meses
+      const mEl = document.getElementById('monthly-hist-months');
+      if (mEl) {
+        mEl.innerHTML = dates.map(d => {
+          const snap = JSON.parse(localStorage.getItem(MONTHLY_PREFIX + d) || '{}');
+          const sel = d === _selMonth;
+          return `<span onclick="renderMonthlyHistory('${d}')"
+            style="cursor:pointer;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;
+            background:${sel ? 'var(--bl)' : 'var(--sur3)'};color:${sel ? '#fff' : 'var(--tx2)'};
+            border:1.5px solid ${sel ? 'var(--bl)' : 'var(--bdr)'}">
+            ${snap.label || d}${snap.final ? '' : ' 🔄'}
+          </span>`;
+        }).join('');
+      }
+
+      const raw = localStorage.getItem(MONTHLY_PREFIX + _selMonth);
+      const el = document.getElementById('monthly-hist-content');
+      if (!raw || !el) return;
+
+      const snap = JSON.parse(raw);
+      const rows = snap.rows || [];
+      const pctCell = (pct) => {
+        const c  = pct >= 100 ? '#027a48' : pct >= 90 ? '#b54708' : pct >= 60 ? '#1a56db' : '#b42318';
+        const bg = pct >= 100 ? '#ecfdf3' : pct >= 90 ? '#fffaeb' : pct >= 60 ? '#eff4ff' : '#fef3f2';
+        return `<td class="ar" style="background:${bg};color:${c};font-weight:700;font-family:'JetBrains Mono',monospace;font-size:12px">${pct.toFixed(1)}%</td>`;
+      };
+
+      el.innerHTML = `
+        <div style="font-size:11px;color:var(--mt);margin-bottom:10px">
+          ${snap.final ? '🔒 Snapshot final' : '🔄 En curso — se actualiza con cada carga'} ·
+          Guardado: ${new Date(snap.ts).toLocaleString('es-AR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' })}
+        </div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th>Comercial</th>
+            <th class="ar">Objetivo</th>
+            <th class="ar">Forecast $</th>
+            <th class="ar">Ganados $</th>
+            <th class="ar">% Real</th>
+            <th class="ar">% Forecast</th>
+            <th class="ar">% Total</th>
+          </tr></thead>
+          <tbody>
+            ${rows.map(r => {
+              const fcPct  = r.obj > 0 ? (r.fc  / r.obj) * 100 : 0;
+              const wonPct = r.obj > 0 ? (r.won / r.obj) * 100 : 0;
+              const totPct = r.won > 0 ? ((r.won + r.fc) / r.obj) * 100 : fcPct;
+              return `<tr>
+                <td>${r.v}</td>
+                <td class="tm ar" style="color:#6c7585">${$A(r.obj)}</td>
+                <td class="tm ar" style="font-weight:700">${r.fc > 0 ? $A(r.fc) : '—'}<div style="font-size:9px;color:#9aa1b1">${r.fcN} deal${r.fcN!==1?'s':''}</div></td>
+                <td class="tm ar" style="color:#027a48;font-weight:700">${r.won > 0 ? $A(r.won) : '—'}<div style="font-size:9px;color:#9aa1b1">${r.wonN} deal${r.wonN!==1?'s':''}</div></td>
+                ${pctCell(wonPct)}
+                ${pctCell(fcPct)}
+                ${pctCell(totPct)}
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f0f2f5;border-top:2px solid #e4e7ec">
+              <td style="font-weight:700">📊 Total equipo</td>
+              <td class="tm ar" style="color:#6c7585">${$A(snap.totalObj)}</td>
+              <td class="tm ar" style="color:#1a56db;font-weight:800">${$A(snap.totalFc)}</td>
+              <td class="tm ar" style="color:#027a48;font-weight:800">${$A(snap.totalWon)}</td>
+              ${pctCell(snap.totalObj > 0 ? (snap.totalWon / snap.totalObj) * 100 : 0)}
+              ${pctCell(snap.totalObj > 0 ? (snap.totalFc  / snap.totalObj) * 100 : 0)}
+              ${pctCell(snap.totalObj > 0 ? ((snap.totalWon + snap.totalFc) / snap.totalObj) * 100 : 0)}
+            </tr>
+          </tfoot>
+        </table></div>`;
+    }
 
     // ════════════════════════════════════════
     // SNAPSHOTS HISTÓRICOS (localStorage)
