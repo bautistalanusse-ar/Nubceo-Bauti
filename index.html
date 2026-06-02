@@ -2152,7 +2152,7 @@
       <div class="page" id="page-ranking">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
           <div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:3px">🎯 Objetivo mensual: <span
+            <div style="font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:center;gap:6px"><span class="ic"><svg width="13" height="13" aria-hidden="true" style="display:block"><use href="#ic-target"/></svg></span> Objetivo mensual: <span
                 style="color:var(--gn);font-family:'JetBrains Mono',monospace" id="obj-label">$6.000.000 ARS por
                 vendedor</span></div>
             <div style="font-size:11px;color:var(--mt)" id="obj-period"></div>
@@ -3536,7 +3536,7 @@
         <div class="rk-s-pipe mob">Pipe: ${$A(d.pipe)}</div>
       </div>
       <div class="rk-s-pipe desk" title="Pipeline abierto">${$A(d.pipe)}</div>
-      <div style="font-size:8px;color:#9aa1b1;margin-top:2px">${d.deals.length ? `🏆 Mayor deal: ` + d.deals.reduce((a, b) => toA(a) > toA(b) ? a : b, d.deals[0]).title : `Sin ganados`}</div>
+      <div style="font-size:8px;color:#9aa1b1;margin-top:2px">${d.deals.length ? `<svg width="10" height="10" style="vertical-align:middle;margin-right:2px;color:#b54708"><use href="#ic-trophy"/></svg>` + d.deals.reduce((a, b) => toA(a) > toA(b) ? a : b, d.deals[0]).title : `Sin ganados`}</div>
       <div class="rk-s-bar">${noObj ? '' : `<div class="rk-s-btrack"><div class="rk-s-bfill" style="width:${pct}%;background:${bc}"></div></div>`}</div>
       ${pctLabel}
       <div class="rk-s-won">${$A(d.rev)}</div>
@@ -3824,7 +3824,7 @@
               const totPct = noObj ? 0 : (d.won > 0 ? ((d.won + d.fc) / vObj) * 100 : fcPct);
               const rowBg  = !noObj && wonPct >= 100 ? 'rgba(2,122,72,.04)' : !noObj && fcPct >= 90 ? 'rgba(181,71,8,.03)' : 'transparent';
               const wonLabel = d.wonN > 0
-                ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px">🏆 ${noObj ? 'Cerró ' + d.wonN + ' deal' + (d.wonN!==1?'s':'') : 'Ya cumplió ' + wonPct.toFixed(1) + '% con ventas cerradas'}</div>`
+                ? `<div style="font-size:9px;color:#027a48;font-weight:600;margin-top:3px;display:flex;align-items:center;gap:3px"><svg width="10" height="10" style="display:block"><use href="#ic-trophy"/></svg>${noObj ? 'Cerró ' + d.wonN + ' deal' + (d.wonN!==1?'s':'') : 'Ya cumplió ' + wonPct.toFixed(1) + '% con ventas cerradas'}</div>`
                 : '';
               const objCell = isManager
                 ? '<span style="color:#9aa1b1;font-size:10px">Sin cuota</span>'
@@ -3845,7 +3845,7 @@
           </tbody>
           <tfoot>
             <tr style="background:#f0f2f5;border-top:2px solid #e4e7ec">
-              <td style="font-weight:700;color:#0a0d14;font-size:12px">📊 Total equipo</td>
+              <td style="font-weight:700;color:#0a0d14;font-size:12px"><span style="display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" style="display:block;color:#475569"><use href="#ic-chart"/></svg>Total equipo</span></td>
               <td class="tm ar" style="color:#6c7585">${$A(totalObj)}</td>
               <td class="tm ar" style="color:#1a56db;font-weight:800">${$A(totalFc)}</td>
               <td class="tm ar" style="color:#027a48;font-weight:800">${$A(totalWon)}</td>
@@ -3865,13 +3865,14 @@
             const cerca     = withObj.filter(([v, d]) => { const o=getObj(v); const fp=(d.fc/o)*100; const rp=(d.won/o)*100; return fp >= 90 && fp < 100 && rp < 100; });
             const debajo    = withObj.filter(([v, d]) => { const o=getObj(v); return (d.fc/o)*100 < 60 && (d.won/o)*100 < 60; });
             const lines = [];
-            if (cumplidos.length) lines.push(`✅ <strong>${cumplidos.map(([v])=>v).join(', ')}</strong> ya cumplieron su cuota con tratos ganados.`);
-            if (enCamino.length)  lines.push(`🎯 <strong>${enCamino.map(([v])=>v).join(', ')}</strong> llegarían al objetivo si cierran sus deals forecasteados.`);
-            if (cerca.length)     lines.push(`⚡ <strong>${cerca.map(([v])=>v).join(', ')}</strong> están cerca (≥90% en forecast) — seguimiento clave.`);
-            if (debajo.length)    lines.push(`⚠️ <strong>${debajo.map(([v])=>v).join(', ')}</strong> necesitan reforzar el pipeline — por debajo del 60%.`);
-            lines.push(`📈 El equipo tiene <strong>${$A(totalWon)}</strong> en ventas cerradas y <strong>${$A(totalFc)}</strong> forecasteado para el período.`);
-            lines.push(`📊 % real promedio: <strong style="color:${avgWonPct>=100?'#027a48':'#b42318'}">${avgWonPct.toFixed(1)}%</strong> · % forecast promedio: <strong style="color:${avgFcPct>=100?'#027a48':avgFcPct>=60?'#1a56db':'#b42318'}">${avgFcPct.toFixed(1)}%</strong>`);
-            return lines.map(l => `<div style="padding:3px 0;border-bottom:1px solid #eef0f4">${l}</div>`).join('');
+            const dot = (c,ico) => `<span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:4px;background:${c}22;margin-right:5px;flex-shrink:0"><svg width="10" height="10" style="display:block;color:${c}"><use href="#${ico}"/></svg></span>`;
+            if (cumplidos.length) lines.push(`${dot('#027a48','ic-check')}<strong>${cumplidos.map(([v])=>v).join(', ')}</strong> ya cumplieron su cuota con tratos ganados.`);
+            if (enCamino.length)  lines.push(`${dot('#1a56db','ic-target')}<strong>${enCamino.map(([v])=>v).join(', ')}</strong> llegarían al objetivo si cierran sus deals forecasteados.`);
+            if (cerca.length)     lines.push(`${dot('#b54708','ic-zap')}<strong>${cerca.map(([v])=>v).join(', ')}</strong> están cerca (≥90% en forecast) — seguimiento clave.`);
+            if (debajo.length)    lines.push(`${dot('#b42318','ic-warning')}<strong>${debajo.map(([v])=>v).join(', ')}</strong> necesitan reforzar el pipeline — por debajo del 60%.`);
+            lines.push(`${dot('#475569','ic-trend')}El equipo tiene <strong>${$A(totalWon)}</strong> en ventas cerradas y <strong>${$A(totalFc)}</strong> forecasteado para el período.`);
+            lines.push(`${dot('#475569','ic-chart')}% real promedio: <strong style="color:${avgWonPct>=100?'#027a48':'#b42318'}">${avgWonPct.toFixed(1)}%</strong> · % forecast promedio: <strong style="color:${avgFcPct>=100?'#027a48':avgFcPct>=60?'#1a56db':'#b42318'}">${avgFcPct.toFixed(1)}%</strong>`);
+            return lines.map(l => `<div style="padding:5px 0;border-bottom:1px solid #eef0f4;display:flex;align-items:center">${l}</div>`).join('');
           })()}
         </div>`;
       }
@@ -4052,9 +4053,9 @@
     <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g">🏆</div><div class="kpi-lb">${periodLabel}</div><div class="kpi-vl">${md.length}</div><div class="kpi-trend">${$A(sumA(md))}</div></div>
     <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">📈</div><div class="kpi-lb">Q${cq + 1} ${dY}</div><div class="kpi-vl">${qd.length}</div><div class="kpi-trend">${$A(sumA(qd))}</div></div>
     <div class="kpi" style="border-top-color:#5925dc"><div class="kpi-ico i-p">🎯</div><div class="kpi-lb">YTD ${dY}</div><div class="kpi-vl">${ytd.length}</div><div class="kpi-trend">${$A(sumA(ytd))}</div></div>
-    <div class="kpi" style="border-top-color:#b54708"><div class="kpi-ico i-y" style="font-size:11px;font-weight:800;letter-spacing:-.5px">AR</div><div class="kpi-lb">ARG ${periodLabel}</div><div class="kpi-vl">${aW.length}</div><div class="kpi-trend">${$A(sumA(aW))}</div></div>
-    <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g" style="font-size:11px;font-weight:800;letter-spacing:-.5px">UY</div><div class="kpi-lb">URY ${periodLabel}</div><div class="kpi-vl">${uW.length}</div><div class="kpi-trend">${$A(sumA(uW))}</div></div>
-    <div class="kpi" style="border-top-color:#b42318"><div class="kpi-ico i-r" style="font-size:11px;font-weight:800;letter-spacing:-.5px">PY</div><div class="kpi-lb">PAR ${periodLabel}</div><div class="kpi-vl">${pW.length}</div><div class="kpi-trend">${$A(sumA(pW))}</div></div>
+    <div class="kpi" style="border-top-color:#b54708"><div class="kpi-ico i-y">🇦🇷</div><div class="kpi-lb">ARG ${periodLabel}</div><div class="kpi-vl">${aW.length}</div><div class="kpi-trend">${$A(sumA(aW))}</div></div>
+    <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g">🇺🇾</div><div class="kpi-lb">URY ${periodLabel}</div><div class="kpi-vl">${uW.length}</div><div class="kpi-trend">${$A(sumA(uW))}</div></div>
+    <div class="kpi" style="border-top-color:#b42318"><div class="kpi-ico i-r">🇵🇾</div><div class="kpi-lb">PAR ${periodLabel}</div><div class="kpi-vl">${pW.length}</div><div class="kpi-trend">${$A(sumA(pW))}</div></div>
   `;
 
       const tb = document.getElementById('tbl-won');
@@ -4181,7 +4182,7 @@
           </tbody>
           <tfoot>
             <tr style="background:#f0f2f5;border-top:2px solid #e4e7ec">
-              <td style="font-weight:700">📊 Total equipo</td>
+              <td style="font-weight:700"><span style="display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" style="display:block;color:#475569"><use href="#ic-chart"/></svg>Total equipo</span></td>
               <td class="tm ar" style="color:#6c7585">${$A(snap.totalObj)}</td>
               <td class="tm ar" style="color:#1a56db;font-weight:800">${$A(snap.totalFc)}</td>
               <td class="tm ar" style="color:#027a48;font-weight:800">${$A(snap.totalWon)}</td>
