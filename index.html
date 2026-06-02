@@ -3101,17 +3101,24 @@
         setLd('Pipelines y etapas…');
         const [{ data: pipes }, { data: stgs }] = await Promise.all([pdG('/pipelines'), pdG('/stages')]);
         S.pipelines = pipes || []; S.stages = stgs || [];
-        setLd('Descargando deals (Ultra rápido)…');
-        const [rawO, rawW, rawNoAct] = await Promise.all([
+        setLd('Descargando deals…');
+        const [rawO, rawW] = await Promise.all([
           pdAll('/deals', { status: 'open' }, 18),
-          pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5),
-          pdAll('/deals', { filter_id: 2636, status: 'open' }, 4)
+          pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5)
         ]);
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = rawO.filter(d => d.pipeline_id === 158);
         S.devWon = rawW.filter(d => d.pipeline_id === 158);
-        S.filterBase = rawNoAct; // deals del equipo activo (filtro 2636)
+        // Filtro 2636 en llamada separada — un error aquí no rompe la carga principal
+        setLd('Cobertura contactos…');
+        try {
+          const rawF = await pdAll('/deals', { filter_id: 2636, status: 'open' }, 4);
+          S.filterBase = rawF;
+        } catch (ef) {
+          console.warn('Filtro 2636 no disponible, usando S.open como base:', ef);
+          S.filterBase = [];
+        }
 
         setLd('Tipo de cambio…');
         await loadFX();
