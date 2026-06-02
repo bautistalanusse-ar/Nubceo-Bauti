@@ -2910,7 +2910,7 @@
     };
     const BASE = 'https://api.pipedrive.com/v1';
     let TOKEN = '';
-    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {}, filterNoAct: [] };
+    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {}, filterBase: [] };
     let chR = null, chF = null, kbF = 'all', fcP = 'month';
     const OBJ_DEFAULT = 6000000;
 
@@ -3032,7 +3032,7 @@
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = rawO.filter(d => d.pipeline_id === 158);
         S.devWon = rawW.filter(d => d.pipeline_id === 158);
-        S.filterNoAct = rawNoAct;
+        S.filterBase = rawNoAct; // deals del equipo activo (filtro 2636)
 
         setLd('Tipo de cambio…');
         await loadFX();
@@ -3110,18 +3110,17 @@
       }
       return 'ok';
     }
-    // Simpler version without typo
     function actSt(d) {
       const pend = d.undone_activities_count || 0;
-      if (pend > 0) return 'ok';
-      if (d.next_activity_date) {
-        const n = new Date(d.next_activity_date); n.setHours(0, 0, 0, 0);
-        const t = new Date(); t.setHours(0, 0, 0, 0);
-        if (n >= t) return 'ok';
+      if (pend > 0) {
+        if (d.next_activity_date) {
+          const n = new Date(d.next_activity_date); n.setHours(0,0,0,0);
+          const t = new Date(); t.setHours(0,0,0,0);
+          return n < t ? 'over' : 'ok';
+        }
+        return 'ok';
       }
-      const last = d.last_activity_date ? dt(d.last_activity_date) : null;
-      if (last === null || last < -10) return 'noact';
-      return 'ok';
+      return 'noact'; // sin actividad planificada
     }
 
     // ════════════════════════════════════════
@@ -3433,12 +3432,13 @@
     function renderDash() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
       const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      const open = S.open;
+      // Base del dashboard: filtro 2636 (equipo activo). Fallback a S.open si no cargó aún.
+      const open = S.filterBase.length > 0 ? S.filterBase : S.open;
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
-      // Siempre usa el filtro 2636 de Pipedrive
-      const noAct = S.filterNoAct;
-      const overAct = open.filter(d => actSt(d) === 'over');
+      const noAct   = open.filter(d => actSt(d) === 'noact');  // sin actividad alguna
+      const overAct = open.filter(d => actSt(d) === 'over');  // actividad vencida
+      const noFutAct = noAct.length + overAct.length;          // total sin actividad futura
 
       // Deals closing this month
       const closingNow = open.filter(d => {
@@ -3486,7 +3486,7 @@
 
       // % closed of pipeline
       const pipeVal  = sumA(openWithVal);
-      const pctNoAct = open.length > 0 ? Math.round((noAct.length / open.length) * 100) : 0;
+      const pctNoAct = open.length > 0 ? Math.round((noFutAct / open.length) * 100) : 0;
       const pctClose = open.length > 0 ? Math.round((closingNow.length / open.length) * 100) : 0;
 
       const ico = (id, cls) => `<div class="dkpi-ico ${cls}">${svgUse(id, 16)}</div>`;
@@ -3589,9 +3589,9 @@
             ${ico('ic-warning','i-r')}
             ${badge(pctNoAct + '% sin act.','#b42318','#fef2f2')}
           </div>
-          <div class="dkpi-label">Sin actividad planificada</div>
-          <div class="dkpi-main">${noAct.length}</div>
-          <div class="dkpi-sub">De <strong>${open.length}</strong> deals abiertos · vía filtro Pipedrive</div>
+          <div class="dkpi-label">Sin actividad futura</div>
+          <div class="dkpi-main">${noFutAct}</div>
+          <div class="dkpi-sub"><strong>${overAct.length}</strong> vencida · <strong>${noAct.length}</strong> sin planificar</div>
           <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${pctNoAct}%;background:#b42318"></div></div>
         </div>
       </div>`;
