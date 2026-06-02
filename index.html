@@ -2861,6 +2861,8 @@
                 <th style="color:#027a48">Multi</th>
                 <th style="color:#b42318">Vencidas</th>
                 <th style="color:#92400e">Sin act.</th>
+                <th style="color:#b54708">Sin minuta</th>
+                <th style="color:#b54708">Sin presup.</th>
                 <th>Prom.</th>
                 <th style="min-width:90px">Cobertura</th>
               </tr>
@@ -4360,6 +4362,8 @@
     // ════════════════════════════════════════
 
     const _ctAccDeals = {};
+    const _ctVendorDeals = {};
+    const _ctVendorLoaded = {};
 
     function ctClassify(d) {
       const pc = d.participants_count;
@@ -4474,17 +4478,63 @@
       if (tb) tb.innerHTML = renderAccRows(deals);
     }
 
+    async function openCtAccWithLoad(rid, type) {
+      const id = rid + '-' + type;
+      const el = document.getElementById(id);
+      if (!el) return;
+      const isOpen = el.style.display === 'table-row';
+      if (isOpen) { el.style.display = 'none'; return; }
+
+      // Load ALL vendor deals extras first (needed to determine sin minuta/sin presup)
+      const allDeals = _ctVendorDeals[rid] || [];
+      if (!_ctVendorLoaded[rid]) {
+        el.style.display = 'table-row';
+        const tb = el.querySelector('.ct-acc-tbody');
+        if (tb) tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--mt)">Analizando ${allDeals.length} deals del comercial…</td></tr>`;
+        await loadDealExtras(allDeals);
+        _ctVendorLoaded[rid] = true;
+
+        const sinM = allDeals.filter(d => !detectMinuta(S.dealExtras[d.id] || { notes: [], files: [] }));
+        const sinP = allDeals.filter(d => !detectPresupuesto(S.dealExtras[d.id] || { notes: [], files: [] }));
+        _ctAccDeals[rid + '-sinminuta'] = sinM;
+        _ctAccDeals[rid + '-sinpresup'] = sinP;
+
+        // Update vendor row counts
+        const smCell = document.getElementById('ct-sm-' + rid);
+        const spCell = document.getElementById('ct-sp-' + rid);
+        if (smCell) smCell.innerHTML = sinM.length > 0
+          ? `<span class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinminuta')">${sinM.length}</span>`
+          : `<span class="ct-num zero">0</span>`;
+        if (spCell) spCell.innerHTML = sinP.length > 0
+          ? `<span class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinpresup')">${sinP.length}</span>`
+          : `<span class="ct-num zero">0</span>`;
+
+        // Update accordion labels
+        const smLbl = document.querySelector('#' + rid + '-sinminuta .ct-acc-lbl');
+        const spLbl = document.querySelector('#' + rid + '-sinpresup .ct-acc-lbl');
+        if (smLbl) smLbl.textContent = 'Sin minuta — ' + sinM.length + ' deal' + (sinM.length !== 1 ? 's' : '');
+        if (spLbl) spLbl.textContent = 'Sin presupuesto — ' + sinP.length + ' deal' + (sinP.length !== 1 ? 's' : '');
+      }
+
+      el.style.display = 'table-row';
+      const tb = el.querySelector('.ct-acc-tbody');
+      const deals = _ctAccDeals[id] || [];
+      if (tb) tb.innerHTML = deals.length ? renderAccRows(deals) : '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--gn)">✓ Todos los deals tienen este dato cargado</td></tr>';
+    }
+
     function renderContactos() {
       try {
       const selV = document.getElementById('ct-v')?.value || '';
       const base = S.filterBase.length > 0 ? S.filterBase : S.open;
       if (!base || !base.length) {
         document.getElementById('ct-kpis').innerHTML = '';
-        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="9" class="empty">Cargando datos del filtro…</td></tr>';
+        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="11" class="empty">Cargando datos del filtro…</td></tr>';
         return;
       }
 
       Object.keys(_ctAccDeals).forEach(k => delete _ctAccDeals[k]);
+      Object.keys(_ctVendorDeals).forEach(k => delete _ctVendorDeals[k]);
+      Object.keys(_ctVendorLoaded).forEach(k => delete _ctVendorLoaded[k]);
 
       const ownerOf = (d) => d.user_id?.name || d.owner_name || '—';
       const byV = {};
@@ -4534,16 +4584,30 @@
         .filter(([v]) => !selV || v === selV)
         .sort((a, b) => b[1].none.length - a[1].none.length);
 
+      const NCOLS = 11;
       const accBlock = (id, deals, label, cls) => {
         if (!deals.length) return '';
         _ctAccDeals[id] = deals;
         return `<tr id="${id}" class="ct-acc" style="display:none">
-          <td colspan="9" style="padding:0">
+          <td colspan="${NCOLS}" style="padding:0">
             <div class="ct-acc-in">
               <div class="ct-acc-lbl ${cls}">${label} — ${deals.length} deal${deals.length > 1 ? 's' : ''}</div>
               <table class="ct-acc-t">
                 <thead><tr><th>Deal / Organización</th><th class="ar">Contactos</th><th>Minuta</th><th>Presupuesto</th><th>Actividad</th><th class="ar">Valor</th></tr></thead>
-                <tbody class="ct-acc-tbody"><tr><td colspan="6" style="text-align:center;padding:10px;color:var(--mt);font-size:11px">Expandí para cargar detalles</td></tr></tbody>
+                <tbody class="ct-acc-tbody"><tr><td colspan="6" style="text-align:center;padding:10px;color:var(--mt);font-size:11px">Clic para cargar detalles</td></tr></tbody>
+              </table>
+            </div>
+          </td>
+        </tr>`;
+      };
+      const lazyAcc = (id, label, cls) => {
+        return `<tr id="${id}" class="ct-acc" style="display:none">
+          <td colspan="${NCOLS}" style="padding:0">
+            <div class="ct-acc-in">
+              <div class="ct-acc-lbl ${cls}">${label}</div>
+              <table class="ct-acc-t">
+                <thead><tr><th>Deal / Organización</th><th class="ar">Contactos</th><th>Minuta</th><th>Presupuesto</th><th>Actividad</th><th class="ar">Valor</th></tr></thead>
+                <tbody class="ct-acc-tbody"><tr><td colspan="6" style="text-align:center;padding:10px;color:var(--mt);font-size:11px">Cargando…</td></tr></tbody>
               </table>
             </div>
           </td>
@@ -4560,11 +4624,15 @@
         const rid = 'ctacc-' + v.replace(/[^a-z0-9]/gi, '-');
         const covColor = cov >= 80 ? '#027a48' : cov >= 50 ? '#92400e' : '#b42318';
 
+        _ctVendorDeals[rid] = data.all;
+
         const nCell  = nN > 0    ? `<span class="ct-num red" onclick="openCtAcc('${rid}-none')">${nN}</span>`    : `<span class="ct-num zero">0</span>`;
         const mCell  = mN > 0    ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-mono')">${mN}</span>`    : `<span class="ct-num zero">0</span>`;
         const xCell  = xN > 0    ? `<span class="ct-num grn" onclick="openCtAcc('${rid}-multi')">${xN}</span>`  : `<span class="ct-num zero">0</span>`;
         const ovCell = overN > 0  ? `<span class="ct-num red" onclick="openCtAcc('${rid}-over')">${overN}</span>` : `<span class="ct-num zero">0</span>`;
         const naCell = noActN > 0 ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-noact')">${noActN}</span>` : `<span class="ct-num zero">0</span>`;
+        const smCell = `<span id="ct-sm-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinminuta')" title="Clic para calcular">?</span>`;
+        const spCell = `<span id="ct-sp-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinpresup')" title="Clic para calcular">?</span>`;
 
         const overDeals  = data.all.filter(d => actSt(d) === 'over');
         const noActDeals = data.all.filter(d => actSt(d) === 'noact');
@@ -4578,6 +4646,8 @@
             <td class="ar">${xCell}</td>
             <td class="ar">${ovCell}</td>
             <td class="ar">${naCell}</td>
+            <td class="ar">${smCell}</td>
+            <td class="ar">${spCell}</td>
             <td class="ar" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mt)">${avg}</td>
             <td>
               <div style="display:flex;align-items:center;gap:6px">
@@ -4590,11 +4660,13 @@
           ${accBlock(rid+'-mono',  data.mono,  'Mono-contacto',  'amb')}
           ${accBlock(rid+'-multi', data.multi, 'Multi-contacto', 'grn')}
           ${accBlock(rid+'-over',  overDeals,  'Actividad vencida', 'red')}
-          ${accBlock(rid+'-noact', noActDeals, 'Sin actividad',  'amb')}`;
+          ${accBlock(rid+'-noact', noActDeals, 'Sin actividad',  'amb')}
+          ${lazyAcc(rid+'-sinminuta', 'Sin minuta — ?', 'amb')}
+          ${lazyAcc(rid+'-sinpresup', 'Sin presupuesto — ?', 'amb')}`;
       }).join('');
 
-      document.getElementById('ct-tbody').innerHTML = rows || '<tr><td colspan="9" class="empty">Sin datos</td></tr>';
-      } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="9" class="empty">Error: ' + e.message + '</td></tr>'; }
+      document.getElementById('ct-tbody').innerHTML = rows || `<tr><td colspan="${NCOLS}" class="empty">Sin datos</td></tr>`;
+      } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="11" class="empty">Error: ' + e.message + '</td></tr>'; }
     }
 
     // ════════════════════════════════════════
