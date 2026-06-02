@@ -3221,6 +3221,7 @@
       const [h, p] = PM_TXT[id] || ['', ''];
       document.getElementById('top-h').textContent = h;
       document.getElementById('top-p').textContent = p;
+      if (id === 'contactos') renderContactos();
     }
 
     // ════════════════════════════════════════
@@ -4339,8 +4340,14 @@
     // CONTACTOS
     // ════════════════════════════════════════
     function renderContactos() {
+      try {
       const selV = document.getElementById('ct-v')?.value || '';
       const base = S.open;
+      if (!base || !base.length) {
+        document.getElementById('ct-kpis').innerHTML = '';
+        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Cargando datos…</td></tr>';
+        return;
+      }
 
       // Classify a deal by contact count
       const classify = (d) => {
@@ -4470,6 +4477,7 @@
       }).join('');
 
       document.getElementById('ct-tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
+      } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Error: ' + e.message + '</td></tr>'; }
     }
 
     function toggleCtAcc(id) {
