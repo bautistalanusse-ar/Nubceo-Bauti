@@ -4452,15 +4452,8 @@
         const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
         const pcDisp = (pc === null || pc === undefined) ? '—' : String(pc);
 
-        let minutaCell = '<span style="color:var(--mt);font-size:10px">—</span>';
-        let presupCell = '<span style="color:var(--mt);font-size:10px">—</span>';
-        if (extras) {
-          const m = detectMinuta(extras);
-          if (m) minutaCell = `<span style="color:var(--gn);font-size:10px">✓ ${fd(m.date)}</span>`;
-          const p = detectPresupuesto(extras);
-          if (p?.level === 'green') presupCell = `<span style="color:var(--gn);font-size:10px" title="${p.name || ''}">✓ ${fd(p.date)}</span>`;
-          else if (p?.level === 'yellow') presupCell = `<span style="color:var(--yw);font-size:10px">⚠ ${fd(p.date)}</span>`;
-        }
+        const minutaCell = '<span style="color:var(--mt);font-size:10px">—</span>';
+        const presupCell = '<span style="color:var(--mt);font-size:10px">—</span>';
 
         const ast = actSt(d);
         let actCell;
@@ -4720,9 +4713,8 @@
         const xCell  = xN > 0    ? `<span class="ct-num grn" onclick="openCtAcc('${rid}-multi')">${xN}</span>`  : `<span class="ct-num zero">0</span>`;
         const ovCell = overN > 0  ? `<span class="ct-num red" onclick="openCtAcc('${rid}-over')">${overN}</span>` : `<span class="ct-num zero">0</span>`;
         const naCell = noActN > 0 ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-noact')">${noActN}</span>` : `<span class="ct-num zero">0</span>`;
-        // Sin minuta / Sin presup: show … until bgLoadContactos populates them
-        const smCell = `<span id="ct-sm-${rid}" class="ct-num zero" style="opacity:.45">…</span>`;
-        const spCell = `<span id="ct-sp-${rid}" class="ct-num zero" style="opacity:.45">…</span>`;
+        const smCell = `<span style="color:var(--mt)">—</span>`;
+        const spCell = `<span style="color:var(--mt)">—</span>`;
 
         const overDeals  = data.all.filter(d => actSt(d) === 'over');
         const noActDeals = data.all.filter(d => actSt(d) === 'noact');
@@ -4756,7 +4748,6 @@
       }).join('');
 
       document.getElementById('ct-tbody').innerHTML = rows || `<tr><td colspan="${NCOLS}" class="empty">Sin datos</td></tr>`;
-      bgLoadContactos(); // auto-populate Sin minuta / Sin presup in background
       } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="11" class="empty">Error: ' + e.message + '</td></tr>'; }
     }
 
