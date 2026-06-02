@@ -3777,9 +3777,9 @@
       });
 
       // Closing this month — ARG / URY / PAR breakdown
-      const cmARG = closingMar.filter(d => d.pipeline_id === 151);
-      const cmURY = closingMar.filter(d => d.pipeline_id === 149);
-      const cmPAR = closingMar.filter(d => d.pipeline_id === 159);
+      const cmARG = closingNow.filter(d => [29,30,151,158].includes(d.pipeline_id));
+      const cmURY = closingNow.filter(d => [31,32,149].includes(d.pipeline_id));
+      const cmPAR = closingNow.filter(d => [156,159].includes(d.pipeline_id));
 
       // Section: deals closing in March + no-activity deals
       const existingHotSection = document.getElementById('dash-extra');
@@ -3789,7 +3789,7 @@
       const extraHTML = document.createElement('div');
       extraHTML.id = 'dash-extra';
       extraHTML.innerHTML = `
-    <div class="sh" style="margin-top:4px"><div class="sh-t">📅 Cierran en Marzo — ARG · URY · PAR <span class="chip cb">${closingMar.length} deals · ${$A(sumA(closingMar))}</span></div></div>
+    <div class="sh" style="margin-top:4px"><div class="sh-t">📅 Cierran en ${MN[cm]} — ARG · URY · PAR <span class="chip cb">${closingNow.length} deals · ${$A(sumA(closingNow))}</span></div></div>
     <div class="dash-h-scroll">
       ${[{ lbl: '🇦🇷 Argentina', deals: cmARG, c: '#1a56db' }, { lbl: '🇺🇾 Uruguay', deals: cmURY, c: '#027a48' }, { lbl: '🇵🇾 Paraguay', deals: cmPAR, c: '#b54708' }].map(f => `
         <div class="card" style="padding:13px;border-top:3px solid ${f.c}">
