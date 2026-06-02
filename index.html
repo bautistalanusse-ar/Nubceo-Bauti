@@ -3110,15 +3110,6 @@
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = rawO.filter(d => d.pipeline_id === 158);
         S.devWon = rawW.filter(d => d.pipeline_id === 158);
-        // Filtro 2636 en llamada separada — un error aquí no rompe la carga principal
-        setLd('Cobertura contactos…');
-        try {
-          const rawF = await pdAll('/deals', { filter_id: 2636, status: 'open' }, 4);
-          S.filterBase = rawF;
-        } catch (ef) {
-          console.warn('Filtro 2636 no disponible, usando S.open como base:', ef);
-          S.filterBase = [];
-        }
 
         setLd('Tipo de cambio…');
         await loadFX();
@@ -3519,8 +3510,7 @@
     function renderDash() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
       const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      // Base del dashboard: filtro 2636 (equipo activo). Fallback a S.open si no cargó aún.
-      const open = S.filterBase.length > 0 ? S.filterBase : S.open;
+      const open = S.open;
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
       const noAct   = open.filter(d => actSt(d) === 'noact');  // sin actividad alguna
@@ -4350,7 +4340,7 @@
     // ════════════════════════════════════════
     function renderContactos() {
       const selV = document.getElementById('ct-v')?.value || '';
-      const base = S.filterBase.length > 0 ? S.filterBase : S.open;
+      const base = S.open;
 
       // Classify a deal by contact count
       const classify = (d) => {
