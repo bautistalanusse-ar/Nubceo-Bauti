@@ -2850,6 +2850,7 @@
           </select>
         </div>
         <div id="ct-kpis"></div>
+        <div id="ct-load-status" style="font-size:11px;color:var(--mt);padding:6px 0 2px;min-height:18px"></div>
         <div class="tw">
           <table class="ct-tbl">
             <thead>
@@ -2859,10 +2860,10 @@
                 <th style="color:#b42318">Sin contacto</th>
                 <th style="color:#92400e">Mono</th>
                 <th style="color:#027a48">Multi</th>
-                <th style="color:#b42318">Vencidas</th>
-                <th style="color:#92400e">Sin act.</th>
                 <th style="color:#b54708">Sin minuta</th>
                 <th style="color:#b54708">Sin presup.</th>
+                <th style="color:#b42318">Vencidas</th>
+                <th style="color:#92400e">Sin act.</th>
                 <th>Prom.</th>
                 <th style="min-width:90px">Cobertura</th>
               </tr>
@@ -3127,6 +3128,8 @@
         const deals = (data || []).filter(d => d.status === 'open');
         if (deals.length) {
           S.filterBase = deals;
+          S.dealExtras = {}; // reset cache when base data changes
+          _ctBgDone = false; _ctBgLoading = false;
           renderDash();
           if (document.getElementById('page-contactos').classList.contains('on')) renderContactos();
         }
@@ -4379,13 +4382,15 @@
         const batch = deals.slice(i, i + BATCH).filter(d => !S.dealExtras[d.id]);
         if (!batch.length) continue;
         await Promise.all(batch.map(async d => {
-          const [notesRes, filesRes] = await Promise.all([
+          const [notesRes, filesRes, actsRes] = await Promise.all([
             pdG('/notes', { deal_id: d.id, limit: 100 }),
-            pdG('/deals/' + d.id + '/files', { limit: 100 })
+            pdG('/deals/' + d.id + '/files', { limit: 100 }),
+            pdG('/deals/' + d.id + '/activities', { limit: 100 })
           ]);
           S.dealExtras[d.id] = {
             notes: notesRes.data || [],
-            files: filesRes.data || []
+            files: filesRes.data || [],
+            activities: actsRes.data || []
           };
         }));
       }
@@ -4411,18 +4416,31 @@
     }
 
     function detectPresupuesto(extras) {
-      // Files: any PDF/Excel/Word attached is considered a commercial proposal (filenames use company names)
+      // Green: any PDF/Excel/Word/PPT file attached (filenames use company names, not type names)
       const exts = ['pdf', 'xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'];
       const matchFile = (extras.files || [])
         .filter(f => exts.some(e => (f.name || '').toLowerCase().endsWith('.' + e)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       if (matchFile) return { level: 'green', date: matchFile.add_time, name: matchFile.name };
-      // Notes: explicit mention of a proposal/budget being sent
-      const kwNote = ['propuesta comercial', 'presupuesto', 'cotizaci', 'propuesta económica', 'oferta comercial', 'adjuntamos la propuesta', 'adjunto la propuesta', 'adjunto el presupuesto'];
+
+      // Yellow: note mentions sending a proposal (emails pasted as notes)
+      const kwNote = ['propuesta comercial', 'adjuntamos la propuesta', 'adjunto la propuesta',
+                      'adjunto el presupuesto', 'presupuesto', 'cotizaci', 'propuesta económica', 'oferta comercial'];
       const matchNote = (extras.notes || [])
         .filter(n => kwNote.some(k => stripHtml(n.content).includes(k)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       if (matchNote) return { level: 'yellow', date: matchNote.add_time };
+
+      // Yellow: activity note (internal log) mentions presupuesto was passed/sent (past tense)
+      const kwAct = ['pase presupuesto', 'pase la propuesta', 'pase el presupuesto',
+                     'envie presupuesto', 'envie propuesta', 'enviamos presupuesto', 'enviamos propuesta',
+                     'mande presupuesto', 'mande propuesta', 'presente presupuesto', 'presente propuesta',
+                     'adjunte presupuesto', 'les pase presupuesto', 'les envie presupuesto'];
+      const matchAct = (extras.activities || [])
+        .filter(a => kwAct.some(k => stripHtml(a.note).includes(k)))
+        .sort((a, b) => new Date(a.due_date || a.add_time) - new Date(b.due_date || b.add_time))[0];
+      if (matchAct) return { level: 'yellow', date: matchAct.due_date || matchAct.add_time };
+
       return null;
     }
 
@@ -4524,6 +4542,73 @@
       const tb = el.querySelector('.ct-acc-tbody');
       const deals = _ctAccDeals[id] || [];
       if (tb) tb.innerHTML = deals.length ? renderAccRows(deals) : '<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--gn)">✓ Todos los deals tienen este dato cargado</td></tr>';
+    }
+
+    // ── Background auto-loader for Sin minuta / Sin presup. columns ──
+    let _ctBgLoading = false;
+    let _ctBgDone = false;
+
+    function _ctUpdateRow(rid, sinMCount, sinPCount, presupReady) {
+      const smEl = document.getElementById('ct-sm-' + rid);
+      const spEl = document.getElementById('ct-sp-' + rid);
+      if (smEl) smEl.outerHTML = sinMCount > 0
+        ? `<span id="ct-sm-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinminuta')">${sinMCount}</span>`
+        : `<span id="ct-sm-${rid}" class="ct-num zero">0</span>`;
+      if (spEl) {
+        if (!presupReady) {
+          spEl.outerHTML = `<span id="ct-sp-${rid}" class="ct-num zero" style="opacity:.45">…</span>`;
+        } else {
+          spEl.outerHTML = sinPCount > 0
+            ? `<span id="ct-sp-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinpresup')">${sinPCount}</span>`
+            : `<span id="ct-sp-${rid}" class="ct-num zero">0</span>`;
+        }
+      }
+      const smLbl = document.querySelector(`#${rid}-sinminuta .ct-acc-lbl`);
+      const spLbl = document.querySelector(`#${rid}-sinpresup .ct-acc-lbl`);
+      if (smLbl) smLbl.textContent = `Sin minuta — ${sinMCount} deal${sinMCount !== 1 ? 's' : ''}`;
+      if (spLbl && presupReady) spLbl.textContent = `Sin presupuesto — ${sinPCount} deal${sinPCount !== 1 ? 's' : ''}`;
+    }
+
+    async function bgLoadContactos() {
+      if (_ctBgLoading) return;
+      // If already fully loaded, just re-populate cells from cache (DOM was re-rendered)
+      if (_ctBgDone) {
+        for (const rid of Object.keys(_ctVendorDeals)) {
+          const deals = _ctVendorDeals[rid];
+          const sinM = deals.filter(d => !detectMinuta(S.dealExtras[d.id] || { notes:[], files:[], activities:[] }));
+          const sinP = deals.filter(d => !detectPresupuesto(S.dealExtras[d.id] || { notes:[], files:[], activities:[] }));
+          _ctAccDeals[rid + '-sinminuta'] = sinM;
+          _ctAccDeals[rid + '-sinpresup'] = sinP;
+          _ctUpdateRow(rid, sinM.length, sinP.length, true);
+        }
+        return;
+      }
+      _ctBgLoading = true;
+      const statusEl = document.getElementById('ct-load-status');
+      const setStatus = msg => { if (statusEl) statusEl.textContent = msg; };
+      try {
+        const vendorRids = Object.keys(_ctVendorDeals);
+        for (let vi = 0; vi < vendorRids.length; vi++) {
+          const rid = vendorRids[vi];
+          const deals = _ctVendorDeals[rid];
+          const vname = (deals[0]?.user_id?.name || deals[0]?.owner_name || '').split(' ')[0] || '…';
+          setStatus(`Analizando ${vname} (${vi + 1}/${vendorRids.length})…`);
+          await loadDealExtras(deals);
+          _ctVendorLoaded[rid] = true;
+          const sinM = deals.filter(d => !detectMinuta(S.dealExtras[d.id] || { notes:[], files:[], activities:[] }));
+          const sinP = deals.filter(d => !detectPresupuesto(S.dealExtras[d.id] || { notes:[], files:[], activities:[] }));
+          _ctAccDeals[rid + '-sinminuta'] = sinM;
+          _ctAccDeals[rid + '-sinpresup'] = sinP;
+          _ctUpdateRow(rid, sinM.length, sinP.length, true);
+        }
+        setStatus('');
+        _ctBgDone = true;
+      } catch(e) {
+        console.error('bgLoadContactos error:', e);
+        setStatus('');
+      } finally {
+        _ctBgLoading = false;
+      }
     }
 
     function renderContactos() {
@@ -4635,8 +4720,9 @@
         const xCell  = xN > 0    ? `<span class="ct-num grn" onclick="openCtAcc('${rid}-multi')">${xN}</span>`  : `<span class="ct-num zero">0</span>`;
         const ovCell = overN > 0  ? `<span class="ct-num red" onclick="openCtAcc('${rid}-over')">${overN}</span>` : `<span class="ct-num zero">0</span>`;
         const naCell = noActN > 0 ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-noact')">${noActN}</span>` : `<span class="ct-num zero">0</span>`;
-        const smCell = `<span id="ct-sm-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinminuta')" title="Clic para calcular">?</span>`;
-        const spCell = `<span id="ct-sp-${rid}" class="ct-num amb" onclick="openCtAccWithLoad('${rid}','sinpresup')" title="Clic para calcular">?</span>`;
+        // Sin minuta / Sin presup: show … until bgLoadContactos populates them
+        const smCell = `<span id="ct-sm-${rid}" class="ct-num zero" style="opacity:.45">…</span>`;
+        const spCell = `<span id="ct-sp-${rid}" class="ct-num zero" style="opacity:.45">…</span>`;
 
         const overDeals  = data.all.filter(d => actSt(d) === 'over');
         const noActDeals = data.all.filter(d => actSt(d) === 'noact');
@@ -4648,10 +4734,10 @@
             <td class="ar">${nCell}</td>
             <td class="ar">${mCell}</td>
             <td class="ar">${xCell}</td>
-            <td class="ar">${ovCell}</td>
-            <td class="ar">${naCell}</td>
             <td class="ar">${smCell}</td>
             <td class="ar">${spCell}</td>
+            <td class="ar">${ovCell}</td>
+            <td class="ar">${naCell}</td>
             <td class="ar" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mt)">${avg}</td>
             <td>
               <div style="display:flex;align-items:center;gap:6px">
@@ -4665,11 +4751,12 @@
           ${accBlock(rid+'-multi', data.multi, 'Multi-contacto', 'grn')}
           ${accBlock(rid+'-over',  overDeals,  'Actividad vencida', 'red')}
           ${accBlock(rid+'-noact', noActDeals, 'Sin actividad',  'amb')}
-          ${lazyAcc(rid+'-sinminuta', 'Sin minuta — ?', 'amb')}
-          ${lazyAcc(rid+'-sinpresup', 'Sin presupuesto — ?', 'amb')}`;
+          ${lazyAcc(rid+'-sinminuta', 'Sin minuta', 'amb')}
+          ${lazyAcc(rid+'-sinpresup', 'Sin presupuesto', 'amb')}`;
       }).join('');
 
       document.getElementById('ct-tbody').innerHTML = rows || `<tr><td colspan="${NCOLS}" class="empty">Sin datos</td></tr>`;
+      bgLoadContactos(); // auto-populate Sin minuta / Sin presup in background
       } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="11" class="empty">Error: ' + e.message + '</td></tr>'; }
     }
 
