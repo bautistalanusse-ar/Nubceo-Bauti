@@ -1079,6 +1079,111 @@
       font-family: 'JetBrains Mono', monospace
     }
 
+    /* ── DASH Q BUTTONS ── */
+    .q-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--bdr);
+      background: var(--sur);
+      color: var(--tx2);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit
+    }
+    .q-btn:hover { border-color: var(--bl); color: var(--bl) }
+    .q-btn.q-act { background: var(--bl); color: #fff; border-color: var(--bl) }
+
+    /* ── DASH KPI REDESIGN ── */
+    .dash-kpi-row {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 12px
+    }
+    .dash-kpi-row.r3 { grid-template-columns: repeat(3, 1fr) }
+    .dash-kpi-row.r2 { grid-template-columns: repeat(2, 1fr) }
+    @media (max-width: 900px) {
+      .dash-kpi-row.r3, .dash-kpi-row.r2 { grid-template-columns: repeat(2, 1fr) }
+    }
+    @media (max-width: 560px) {
+      .dash-kpi-row.r3, .dash-kpi-row.r2 { grid-template-columns: 1fr }
+    }
+    .dkpi {
+      background: var(--sur);
+      border: 1px solid var(--bdr);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      overflow: hidden
+    }
+    .dkpi::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--dkpi-color, var(--bl))
+    }
+    .dkpi-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between
+    }
+    .dkpi-ico {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,0,0,.07);
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+    .dkpi-ico svg { width: 16px; height: 16px; display: block }
+    .dkpi-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      letter-spacing: .3px;
+      text-transform: uppercase
+    }
+    .dkpi-main {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--tx);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -1px;
+      line-height: 1
+    }
+    .dkpi-main.sm { font-size: 18px; letter-spacing: -.5px }
+    .dkpi-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--mt);
+      text-transform: uppercase;
+      letter-spacing: .5px
+    }
+    .dkpi-sub {
+      font-size: 11px;
+      color: var(--mt)
+    }
+    .dkpi-sub strong { color: var(--tx2) }
+    .dkpi-bar {
+      height: 4px;
+      background: var(--sur3);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px
+    }
+    .dkpi-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--dkpi-color, var(--bl));
+      transition: width .4s
+    }
+
     /* ── RANKING ── */
     .rk-grid {
       display: grid;
@@ -2112,7 +2217,17 @@
 
       <!-- DASHBOARD -->
       <div class="page on" id="page-dashboard">
-        <div class="kpi-grid" id="kpi-d"></div>
+        <!-- Selector de Quarter -->
+        <div id="dash-q-bar" style="display:flex;align-items:center;gap:6px;margin-bottom:16px;flex-wrap:wrap">
+          <span style="font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-right:4px">Ver:</span>
+          <button class="q-btn q-act" onclick="setDashQ('mes')" id="qb-mes">Mes actual</button>
+          <button class="q-btn" onclick="setDashQ('q1')"  id="qb-q1">Q1</button>
+          <button class="q-btn" onclick="setDashQ('q2')"  id="qb-q2">Q2</button>
+          <button class="q-btn" onclick="setDashQ('q3')"  id="qb-q3">Q3</button>
+          <button class="q-btn" onclick="setDashQ('q4')"  id="qb-q4">Q4</button>
+          <button class="q-btn" onclick="setDashQ('ytd')" id="qb-ytd">YTD</button>
+        </div>
+        <div id="kpi-d"></div>
         <div class="two-col">
           <div class="card">
             <div class="sh">
@@ -3302,52 +3417,181 @@
     }
 
     // ════════════════════════════════════════
-    // ════════════════════════════════════════
     // DASHBOARD
     // ════════════════════════════════════════
+    let _dashQ = 'mes'; // estado actual del selector
+    function setDashQ(q) {
+      _dashQ = q;
+      document.querySelectorAll('.q-btn').forEach(b => b.classList.remove('q-act'));
+      const btn = document.getElementById('qb-' + q);
+      if (btn) btn.classList.add('q-act');
+      renderDash();
+    }
+
     function renderDash() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
+      const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       const open = S.open;
-
-      // Won this month — strict: only numeric-prefix titles AND won_time in current month/year
-      const wonM = S.won.filter(d => {
-        if (!d.won_time) return false;
-        const w = new Date(d.won_time);
-        return w.getMonth() === cm && w.getFullYear() === cy;
-      });
-      // Q1 = all won deals in current year, Q1 months (Jan-Mar = months 0-2)
-      const wonQ = S.won.filter(d => {
-        if (!d.won_time) return false;
-        const w = new Date(d.won_time);
-        return Math.floor(w.getMonth() / 3) === cq && w.getFullYear() === cy;
-      });
-      // YTD = all won in current year
-      const wonY = S.won.filter(d => d.won_time && new Date(d.won_time).getFullYear() === cy);
-      const noAct = open.filter(d => actSt(d) === 'noact');
-
-      // Pipeline con presupuesto = open deals that have a value > 0
       const openWithVal = open.filter(d => (d.value || 0) > 0);
-      const openNoVal = open.filter(d => !(d.value || 0) > 0);
+      const openNoVal   = open.filter(d => !((d.value || 0) > 0));
+      const noAct = open.filter(d => actSt(d) === 'noact');
+      const overAct = open.filter(d => actSt(d) === 'over');
 
-      // Deals closing in March (current month)
-      const marStart = new Date(cy, cm, 1);
-      const marEnd = new Date(cy, cm + 1, 0);
-      const closingMar = open.filter(d => {
+      // Deals closing this month
+      const closingNow = open.filter(d => {
         if (!d.expected_close_date) return false;
         const c = new Date(d.expected_close_date);
-        return c >= marStart && c <= marEnd;
+        return c.getMonth() === cm && c.getFullYear() === cy;
       });
 
+      // Helper: filter won deals by period
+      const wonInPeriod = (q) => S.won.filter(d => {
+        if (!d.won_time) return false;
+        const w = new Date(d.won_time);
+        if (w.getFullYear() !== cy) return false;
+        if (q === 'mes') return w.getMonth() === cm;
+        if (q === 'ytd') return true;
+        const qn = parseInt(q[1]) - 1; // q1→0, q2→1…
+        return Math.floor(w.getMonth() / 3) === qn;
+      });
+
+      // Period label
+      const periodLabels = {
+        mes: MN[cm] + ' ' + cy,
+        q1: 'Q1 ' + cy + ' (Ene–Mar)',
+        q2: 'Q2 ' + cy + ' (Abr–Jun)',
+        q3: 'Q3 ' + cy + ' (Jul–Sep)',
+        q4: 'Q4 ' + cy + ' (Oct–Dic)',
+        ytd: 'YTD ' + cy,
+      };
+      const periodLabel = periodLabels[_dashQ] || periodLabels.mes;
+
+      const wonSel  = wonInPeriod(_dashQ);
+      const wonM    = wonInPeriod('mes');
+      const wonQ    = wonInPeriod('q' + (cq + 1));
+      const wonY    = wonInPeriod('ytd');
+
+      const revSel  = sumA(wonSel);
+      const revM    = sumA(wonM);
+      const revQ    = sumA(wonQ);
+      const revY    = sumA(wonY);
+
+      // Breakdown by country for selected period
+      const wonARG  = wonSel.filter(d => [29,30,151,158].includes(d.pipeline_id));
+      const wonURY  = wonSel.filter(d => [31,32,149].includes(d.pipeline_id));
+      const wonPAR  = wonSel.filter(d => [156,159].includes(d.pipeline_id));
+
+      // % closed of pipeline
+      const pipeVal  = sumA(openWithVal);
+      const pctNoAct = open.length > 0 ? Math.round((noAct.length / open.length) * 100) : 0;
+      const pctClose = open.length > 0 ? Math.round((closingNow.length / open.length) * 100) : 0;
+
+      const ico = (id, cls) => `<div class="dkpi-ico ${cls}">${svgUse(id, 16)}</div>`;
+      const badge = (txt, col, bg) => `<span class="dkpi-badge" style="background:${bg};color:${col}">${txt}</span>`;
+
       document.getElementById('kpi-d').innerHTML = `
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">📂</div><div class="kpi-lb">Pipeline Abierto</div><div class="kpi-vl">${open.length}</div><div class="kpi-trend">${openWithVal.length} con monto · ${openNoVal.length} sin monto</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-g">💰</div><div class="kpi-lb">Valor Pipeline</div><div class="kpi-vl md">${$A(sumA(openWithVal))}</div><div class="kpi-trend">${openNoVal.length} sin monto cargado</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">🏆</div><div class="kpi-lb">Ganados Mes</div><div class="kpi-vl">${wonM.length}</div><div class="kpi-trend">${$A(sumA(wonM))}</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-g">📈</div><div class="kpi-lb">Revenue Mes (ARS)</div><div class="kpi-vl md">${$A(sumA(wonM))}</div><div class="kpi-trend">${wonM.length} deals cerrados</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-p">📊</div><div class="kpi-lb">Revenue Q${cq + 1} (ARS)</div><div class="kpi-vl md">${$A(sumA(wonQ))}</div><div class="kpi-trend">${wonQ.length} deals acumulados</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-o">🎯</div><div class="kpi-lb">Revenue YTD</div><div class="kpi-vl md">${$A(sumA(wonY))}</div><div class="kpi-trend">${wonY.length} deals este año</div></div>
-    <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-r">⚠️</div><div class="kpi-lb">Sin Actividad</div><div class="kpi-vl">${noAct.length}</div><div class="kpi-trend">De ${open.length} abiertos</div></div>
-    <div class="kpi" style="border-left:3px solid #f59e0b; border-top-color:#b54708"><div class="kpi-ico i-y">📅</div><div class="kpi-lb">Cierran en Marzo</div><div class="kpi-vl">${closingMar.length}</div><div class="kpi-trend">${$A(sumA(closingMar))} en juego</div></div>
-  `;
+      <!-- Fila 1: Revenue del período seleccionado -->
+      <div class="dash-kpi-row r3">
+        <div class="dkpi" style="--dkpi-color:#027a48">
+          <div class="dkpi-head">
+            ${ico('ic-trophy','i-g')}
+            ${badge(periodLabel,'#027a48','#ecfdf3')}
+          </div>
+          <div class="dkpi-label">Revenue ganado</div>
+          <div class="dkpi-main sm">${$A(revSel)}</div>
+          <div class="dkpi-sub"><strong>${wonSel.length} deals</strong> cerrados en el período</div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#1a56db">
+          <div class="dkpi-head">
+            ${ico('ic-chart','i-b')}
+            ${badge('Q' + (cq+1) + ' ' + cy,'#1a56db','#eff4ff')}
+          </div>
+          <div class="dkpi-label">Revenue trimestre actual</div>
+          <div class="dkpi-main sm">${$A(revQ)}</div>
+          <div class="dkpi-sub"><strong>${wonQ.length} deals</strong> · ${MN[cq*3]}–${MN[Math.min(cq*3+2,11)]}</div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#5925dc">
+          <div class="dkpi-head">
+            ${ico('ic-trend','i-p')}
+            ${badge('YTD ' + cy,'#5925dc','#f5f3ff')}
+          </div>
+          <div class="dkpi-label">Revenue acumulado año</div>
+          <div class="dkpi-main sm">${$A(revY)}</div>
+          <div class="dkpi-sub"><strong>${wonY.length} deals</strong> cerrados en ${cy}</div>
+        </div>
+      </div>
+
+      <!-- Fila 2: Breakdown por país -->
+      <div class="dash-kpi-row r3">
+        <div class="dkpi" style="--dkpi-color:#1a56db">
+          <div class="dkpi-head">
+            <div style="font-size:20px;line-height:1">🇦🇷</div>
+            ${badge('ARG','#1e40af','#dbeafe')}
+          </div>
+          <div class="dkpi-label">Argentina — ${periodLabel}</div>
+          <div class="dkpi-main sm">${$A(sumA(wonARG))}</div>
+          <div class="dkpi-sub"><strong>${wonARG.length} deals</strong> cerrados</div>
+          <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${revSel>0?Math.round((sumA(wonARG)/revSel)*100):0}%"></div></div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#027a48">
+          <div class="dkpi-head">
+            <div style="font-size:20px;line-height:1">🇺🇾</div>
+            ${badge('URY','#065f46','#d1fae5')}
+          </div>
+          <div class="dkpi-label">Uruguay — ${periodLabel}</div>
+          <div class="dkpi-main sm">${$A(sumA(wonURY))}</div>
+          <div class="dkpi-sub"><strong>${wonURY.length} deals</strong> cerrados</div>
+          <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${revSel>0?Math.round((sumA(wonURY)/revSel)*100):0}%;background:#027a48"></div></div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#b54708">
+          <div class="dkpi-head">
+            <div style="font-size:20px;line-height:1">🇵🇾</div>
+            ${badge('PAR','#92400e','#fef3c7')}
+          </div>
+          <div class="dkpi-label">Paraguay — ${periodLabel}</div>
+          <div class="dkpi-main sm">${$A(sumA(wonPAR))}</div>
+          <div class="dkpi-sub"><strong>${wonPAR.length} deals</strong> cerrados</div>
+          <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${revSel>0?Math.round((sumA(wonPAR)/revSel)*100):0}%;background:#b54708"></div></div>
+        </div>
+      </div>
+
+      <!-- Fila 3: Pipeline stats -->
+      <div class="dash-kpi-row r3">
+        <div class="dkpi" style="--dkpi-color:#0369a1">
+          <div class="dkpi-head">
+            ${ico('ic-folder','i-b')}
+            ${badge(open.length + ' deals','#0369a1','#e0f2fe')}
+          </div>
+          <div class="dkpi-label">Pipeline abierto</div>
+          <div class="dkpi-main sm">${$A(pipeVal)}</div>
+          <div class="dkpi-sub"><strong>${openWithVal.length}</strong> con monto · <strong>${openNoVal.length}</strong> sin monto</div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#b54708">
+          <div class="dkpi-head">
+            ${ico('ic-calendar','i-y')}
+            ${badge(MN[cm],'#92400e','#fef3c7')}
+          </div>
+          <div class="dkpi-label">Cierran este mes</div>
+          <div class="dkpi-main">${closingNow.length}</div>
+          <div class="dkpi-sub">${$A(sumA(closingNow))} en juego · <strong>${pctClose}%</strong> del pipeline</div>
+        </div>
+
+        <div class="dkpi" style="--dkpi-color:#b42318">
+          <div class="dkpi-head">
+            ${ico('ic-warning','i-r')}
+            ${badge(pctNoAct + '% sin act.','#b42318','#fef2f2')}
+          </div>
+          <div class="dkpi-label">Sin actividad planificada</div>
+          <div class="dkpi-main">${noAct.length}</div>
+          <div class="dkpi-sub">De <strong>${open.length}</strong> deals abiertos · ${overAct.length} con actividad vencida</div>
+          <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${pctNoAct}%;background:#b42318"></div></div>
+        </div>
+      </div>`;
 
       // Revenue por vendedor este mes — en millones
       const bV = {};
