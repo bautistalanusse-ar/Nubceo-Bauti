@@ -3242,7 +3242,13 @@
       const vs = new Set();
       [...S.open, ...S.won].forEach(d => { const v = gv(d); if (v && v !== '—') vs.add(v); });
       const opts = '<option value="">Todos</option>' + [...vs].sort().map(v => `<option value="${v}">${v}</option>`).join('');
-      ['f-v', 'fc-vf', 'ct-v'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
+      ['f-v', 'fc-vf'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
+      // ct-v usa owner_name directo del filtro
+      const ctVel = document.getElementById('ct-v');
+      if (ctVel) {
+        const ctOwners = [...new Set((S.filterBase.length > 0 ? S.filterBase : S.open).map(d => d.user_id?.name || d.owner_name).filter(Boolean))].sort();
+        ctVel.innerHTML = '<option value="">Todos</option>' + ctOwners.map(v => `<option value="${v}">${v}</option>`).join('');
+      }
     }
 
     // ── Icon system ────────────────────────────────────────────
@@ -4373,10 +4379,11 @@
         return (pc === null || pc === undefined) ? '—' : String(pc);
       };
 
-      // Group by vendor
+      // Group by owner name directo del deal (evita duplicados del campo custom)
+      const ownerOf = (d) => d.user_id?.name || d.owner_name || '—';
       const byV = {};
       base.forEach(d => {
-        const v = gv(d);
+        const v = ownerOf(d);
         if (!v || v === '—') return;
         if (!byV[v]) byV[v] = { none: [], mono: [], multi: [], all: [] };
         const cls = classify(d);
@@ -4427,10 +4434,11 @@
         const pc = dispPc(d);
         const cls = classify(d);
         const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
+        const noContactBadge = cls === 'none' ? '<span style="font-size:9px;font-weight:700;color:#b42318;background:#fef2f2;border:1px solid #fca5a5;border-radius:3px;padding:1px 4px">SIN CONTACTO</span>' : '';
         return `<tr>
-          <td>${d.title || '—'}</td>
+          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'} ${noContactBadge}</td>
           <td>${d.org_name || '—'}</td>
-          <td>${gsn(d)}</td>
+          <td style="color:var(--mt);font-size:10px">${gsn(d)}</td>
           <td class="ar" style="font-family:'JetBrains Mono',monospace;color:#027a48;font-weight:700">${fc(d)}</td>
           <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${pcColor}">${pc}</td>
         </tr>`;
