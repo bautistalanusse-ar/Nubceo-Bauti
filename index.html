@@ -433,32 +433,37 @@
       align-items: center;
       justify-content: center;
       font-size: 16px;
-      margin-bottom: 9px
+      margin-bottom: 9px;
+      border: 1px solid rgba(0,0,0,.07)
     }
 
-    .i-b {
-      background: var(--bl-l)
+    .kpi-ico svg { width: 18px; height: 18px; display: block }
+
+    .i-b { background: var(--bl-l); color: #1a56db }
+    .i-g { background: var(--gn-l); color: #027a48 }
+    .i-r { background: var(--rd-l); color: #b42318 }
+    .i-y { background: var(--yw-l); color: #b45309 }
+    .i-p { background: var(--pu-l); color: #5925dc }
+    .i-o { background: var(--or-l); color: #b54708 }
+
+    /* Inline icon chip — section headers */
+    .ic {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: var(--sur3);
+      border: 1px solid var(--bdr);
+      border-radius: 6px;
+      flex-shrink: 0;
+      vertical-align: middle;
+      margin-right: 5px
     }
 
-    .i-g {
-      background: var(--gn-l)
-    }
+    .ic svg { width: 13px; height: 13px; display: block; color: var(--mt) }
 
-    .i-r {
-      background: var(--rd-l)
-    }
-
-    .i-y {
-      background: var(--yw-l)
-    }
-
-    .i-p {
-      background: var(--pu-l)
-    }
-
-    .i-o {
-      background: var(--or-l)
-    }
+    .sh-t { display: flex; align-items: center }
 
     .kpi-lb {
       font-size: 9px;
@@ -1971,6 +1976,29 @@
 </head>
 
 <body>
+<!-- ── SVG icon system ─────────────────────────────────────── -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <symbol id="ic-target"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="ic-chart"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></symbol>
+  <symbol id="ic-trend"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></symbol>
+  <symbol id="ic-list"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 000 4h6a2 2 0 000-4M9 5a2 2 0 012-2h2a2 2 0 012 2"/></symbol>
+  <symbol id="ic-calendar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
+  <symbol id="ic-trophy"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6M18 9h1.5a2.5 2.5 0 000-5H18M4 22h16M8 22v-4M16 22v-4M12 17c-4 0-6-3-6-7V4h12v6c0 4-2 7-6 7z"/></symbol>
+  <symbol id="ic-warning"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="ic-fire"     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2s-4 4-4 9a4 4 0 008 0c0-5-4-9-4-9zM8.5 14.5A3.5 3.5 0 0012 18a3.5 3.5 0 003.5-3.5"/></symbol>
+  <symbol id="ic-globe"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></symbol>
+  <symbol id="ic-dollar"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></symbol>
+  <symbol id="ic-folder"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></symbol>
+  <symbol id="ic-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></symbol>
+  <symbol id="ic-camera"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  <symbol id="ic-layers"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="ic-clock"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="ic-check"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></symbol>
+  <symbol id="ic-zap"      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="ic-users"    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></symbol>
+  <symbol id="ic-kanban"   viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="5" height="18" rx="1"/><rect x="10" y="3" width="5" height="12" rx="1"/><rect x="17" y="3" width="5" height="16" rx="1"/></symbol>
+  <symbol id="ic-pie"      viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></symbol>
+</svg>
 
   <div id="cfg" class="show">
     <div class="cfg-box">
@@ -2822,6 +2850,7 @@
       buildRkYSel(now.getFullYear());
       initFcYearSelects();
       onFcPeriodChange();
+      applyIconSystem();
     });
     function buildYSel(y) {
       const s = document.getElementById('f-y');
@@ -3010,7 +3039,36 @@
       ['f-v', 'fc-vf'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
     }
 
-    function renderAll() { renderDash(); renderRanking(); renderForecast(); renderDev(); renderKanban(); renderWon(); }
+    // ── Icon system ────────────────────────────────────────────
+    const EMOJI_ICON = {
+      '🎯':'ic-target','📊':'ic-chart','📈':'ic-trend','📋':'ic-list',
+      '📅':'ic-calendar','🏆':'ic-trophy','⚠️':'ic-warning','🔥':'ic-fire',
+      '🌎':'ic-globe','💰':'ic-dollar','📂':'ic-folder','🔧':'ic-settings',
+      '📸':'ic-camera','🗂️':'ic-layers','🕐':'ic-clock','✅':'ic-check',
+      '⚡':'ic-zap','👥':'ic-users','📈':'ic-trend',
+    };
+    const svgUse = (id, w=18) => `<svg width="${w}" height="${w}" aria-hidden="true" style="display:block"><use href="#${id}"/></svg>`;
+    const icSpan = (id) => `<span class="ic">${svgUse(id, 13)}</span>`;
+
+    function applyIconSystem() {
+      // Replace emoji in .kpi-ico elements
+      document.querySelectorAll('.kpi-ico').forEach(el => {
+        const t = el.textContent.trim();
+        if (EMOJI_ICON[t]) el.innerHTML = svgUse(EMOJI_ICON[t], 18);
+      });
+      // Replace leading emoji in .sh-t elements
+      document.querySelectorAll('.sh-t').forEach(el => {
+        if (el.querySelector('.ic')) return;
+        for (const [emoji, id] of Object.entries(EMOJI_ICON)) {
+          if (el.innerHTML.trimStart().startsWith(emoji)) {
+            el.innerHTML = el.innerHTML.replace(emoji, icSpan(id));
+            break;
+          }
+        }
+      });
+    }
+
+    function renderAll() { renderDash(); renderRanking(); renderForecast(); renderDev(); renderKanban(); renderWon(); applyIconSystem(); }
 
     // ════════════════════════════════════════
     // DESARROLLO DE CUENTAS
@@ -3533,6 +3591,7 @@
       </div>`: `<div style="font-size:10px;color:#9aa1b1;margin-top:6px">Sin deals ganados en ${periodLabel}</div>`}
     </div>`;
       }).join('');
+      applyIconSystem();
     }
 
     // ════════════════════════════════════════
@@ -3993,9 +4052,9 @@
     <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g">🏆</div><div class="kpi-lb">${periodLabel}</div><div class="kpi-vl">${md.length}</div><div class="kpi-trend">${$A(sumA(md))}</div></div>
     <div class="kpi" style="border-top-color:#1a56db"><div class="kpi-ico i-b">📈</div><div class="kpi-lb">Q${cq + 1} ${dY}</div><div class="kpi-vl">${qd.length}</div><div class="kpi-trend">${$A(sumA(qd))}</div></div>
     <div class="kpi" style="border-top-color:#5925dc"><div class="kpi-ico i-p">🎯</div><div class="kpi-lb">YTD ${dY}</div><div class="kpi-vl">${ytd.length}</div><div class="kpi-trend">${$A(sumA(ytd))}</div></div>
-    <div class="kpi" style="border-top-color:#b54708"><div class="kpi-ico i-y">🇦🇷</div><div class="kpi-lb">ARG ${periodLabel}</div><div class="kpi-vl">${aW.length}</div><div class="kpi-trend">${$A(sumA(aW))}</div></div>
-    <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g">🇺🇾</div><div class="kpi-lb">URY ${periodLabel}</div><div class="kpi-vl">${uW.length}</div><div class="kpi-trend">${$A(sumA(uW))}</div></div>
-    <div class="kpi" style="border-top-color:#b42318"><div class="kpi-ico i-r">🇵🇾</div><div class="kpi-lb">PAR ${periodLabel}</div><div class="kpi-vl">${pW.length}</div><div class="kpi-trend">${$A(sumA(pW))}</div></div>
+    <div class="kpi" style="border-top-color:#b54708"><div class="kpi-ico i-y" style="font-size:11px;font-weight:800;letter-spacing:-.5px">AR</div><div class="kpi-lb">ARG ${periodLabel}</div><div class="kpi-vl">${aW.length}</div><div class="kpi-trend">${$A(sumA(aW))}</div></div>
+    <div class="kpi" style="border-top-color:#027a48"><div class="kpi-ico i-g" style="font-size:11px;font-weight:800;letter-spacing:-.5px">UY</div><div class="kpi-lb">URY ${periodLabel}</div><div class="kpi-vl">${uW.length}</div><div class="kpi-trend">${$A(sumA(uW))}</div></div>
+    <div class="kpi" style="border-top-color:#b42318"><div class="kpi-ico i-r" style="font-size:11px;font-weight:800;letter-spacing:-.5px">PY</div><div class="kpi-lb">PAR ${periodLabel}</div><div class="kpi-vl">${pW.length}</div><div class="kpi-trend">${$A(sumA(pW))}</div></div>
   `;
 
       const tb = document.getElementById('tbl-won');
@@ -4009,6 +4068,7 @@
     <td class="tm" class="ar-vl">${fc(d)}</td>
     <td class="tm">${fd(d.won_time)}</td>
   </tr>`).join('');
+      applyIconSystem();
     }
 
     // ════════════════════════════════════════
