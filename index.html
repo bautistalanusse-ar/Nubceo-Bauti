@@ -2910,7 +2910,7 @@
     };
     const BASE = 'https://api.pipedrive.com/v1';
     let TOKEN = '';
-    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {} };
+    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {}, filterNoAct: [] };
     let chR = null, chF = null, kbF = 'all', fcP = 'month';
     const OBJ_DEFAULT = 6000000;
 
@@ -3023,14 +3023,16 @@
         const [{ data: pipes }, { data: stgs }] = await Promise.all([pdG('/pipelines'), pdG('/stages')]);
         S.pipelines = pipes || []; S.stages = stgs || [];
         setLd('Descargando deals (Ultra rápido)…');
-        const [rawO, rawW] = await Promise.all([
+        const [rawO, rawW, rawNoAct] = await Promise.all([
           pdAll('/deals', { status: 'open' }, 18),
-          pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5)
+          pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5),
+          pdAll('/deals', { filter_id: 2636 }, 4)
         ]);
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
         S.devOpen = rawO.filter(d => d.pipeline_id === 158);
         S.devWon = rawW.filter(d => d.pipeline_id === 158);
+        S.filterNoAct = rawNoAct;
 
         setLd('Tipo de cambio…');
         await loadFX();
@@ -3434,7 +3436,8 @@
       const open = S.open;
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
-      const noAct = open.filter(d => actSt(d) === 'noact');
+      // Usa el filtro 2636 de Pipedrive (más preciso que el cálculo local)
+      const noAct = S.filterNoAct.length > 0 ? S.filterNoAct : open.filter(d => actSt(d) === 'noact');
       const overAct = open.filter(d => actSt(d) === 'over');
 
       // Deals closing this month
@@ -3588,7 +3591,7 @@
           </div>
           <div class="dkpi-label">Sin actividad planificada</div>
           <div class="dkpi-main">${noAct.length}</div>
-          <div class="dkpi-sub">De <strong>${open.length}</strong> deals abiertos · ${overAct.length} con actividad vencida</div>
+          <div class="dkpi-sub">De <strong>${open.length}</strong> deals abiertos · vía filtro Pipedrive</div>
           <div class="dkpi-bar"><div class="dkpi-bar-fill" style="width:${pctNoAct}%;background:#b42318"></div></div>
         </div>
       </div>`;
