@@ -3118,12 +3118,15 @@
       document.getElementById('sb-ts').textContent = 'Act: ' + new Date().toLocaleTimeString('es-AR');
       setRef(false);
       // Carga filtro 2636 en background (1 sola request, no bloquea)
-      pdG('/deals', { filter_id: 2636, status: 'open', limit: 500 }, 12000).then(({ data }) => {
-        if (data && data.length) {
-          S.filterBase = data;
+      pdG('/deals', { filter_id: 2636, limit: 500 }, 15000).then(({ data }) => {
+        console.log('[Filtro 2636] recibidos:', data ? data.length : 'null', data);
+        const deals = (data || []).filter(d => d.status === 'open');
+        if (deals.length) {
+          S.filterBase = deals;
           renderDash();
           if (document.getElementById('page-contactos').classList.contains('on')) renderContactos();
         }
+        document.getElementById('sb-ts').textContent = 'Act: ' + new Date().toLocaleTimeString('es-AR') + ' · filtro: ' + (deals.length || 'N/A');
       });
     }
 
