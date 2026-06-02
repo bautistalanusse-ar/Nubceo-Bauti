@@ -2857,8 +2857,10 @@
                 <th style="text-align:left">Comercial</th>
                 <th>Deals</th>
                 <th style="color:#b42318">Sin contacto</th>
-                <th style="color:#92400e">Mono-contacto</th>
-                <th style="color:#027a48">Multi-contacto</th>
+                <th style="color:#92400e">Mono</th>
+                <th style="color:#027a48">Multi</th>
+                <th style="color:#b42318">Vencidas</th>
+                <th style="color:#92400e">Sin act.</th>
                 <th>Prom.</th>
                 <th style="min-width:90px">Cobertura</th>
               </tr>
@@ -2989,7 +2991,7 @@
     };
     const BASE = 'https://api.pipedrive.com/v1';
     let TOKEN = '';
-    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {}, filterBase: [] };
+    let S = { open: [], won: [], devOpen: [], devWon: [], stages: [], pipelines: [], acts: [], fx: {}, filterBase: [], dealExtras: {} };
     let chR = null, chF = null, kbF = 'all', fcP = 'month';
     const OBJ_DEFAULT = 6000000;
 
@@ -4356,51 +4358,153 @@
     // ════════════════════════════════════════
     // CONTACTOS
     // ════════════════════════════════════════
+
+    const _ctAccDeals = {};
+
+    function ctClassify(d) {
+      const pc = d.participants_count;
+      if (pc === null || pc === undefined) return d.person_id ? 'mono' : 'none';
+      if (pc === 0) return 'none';
+      if (pc <= 2) return 'mono';
+      return 'multi';
+    }
+
+    async function loadDealExtras(deals) {
+      const BATCH = 8;
+      for (let i = 0; i < deals.length; i += BATCH) {
+        const batch = deals.slice(i, i + BATCH).filter(d => !S.dealExtras[d.id]);
+        if (!batch.length) continue;
+        await Promise.all(batch.map(async d => {
+          const [notesRes, filesRes] = await Promise.all([
+            pdG('/notes', { deal_id: d.id, limit: 100 }),
+            pdG('/deals/' + d.id + '/files', { limit: 100 })
+          ]);
+          S.dealExtras[d.id] = {
+            notes: notesRes.data || [],
+            files: filesRes.data || []
+          };
+        }));
+      }
+    }
+
+    function detectMinuta(extras) {
+      const kw = ['minuta', 'acta', 'gemini notes', 'resumen de reuni'];
+      const matchNote = (extras.notes || [])
+        .filter(n => kw.some(k => (n.content || '').toLowerCase().includes(k)))
+        .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
+      const matchFile = (extras.files || [])
+        .filter(f => kw.some(k => (f.name || '').toLowerCase().includes(k)))
+        .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
+      const candidates = [matchNote, matchFile].filter(Boolean);
+      if (!candidates.length) return null;
+      const oldest = candidates.sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
+      return { date: oldest.add_time };
+    }
+
+    function detectPresupuesto(extras) {
+      const kw = ['presupuesto', 'propuesta', 'cotizacion', 'cotización', 'oferta', 'quote'];
+      const exts = ['pdf', 'xlsx', 'xls', 'docx', 'doc'];
+      const matchFile = (extras.files || [])
+        .filter(f => {
+          const name = (f.name || '').toLowerCase();
+          return kw.some(k => name.includes(k)) || exts.some(e => name.endsWith('.' + e));
+        })
+        .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
+      if (matchFile) return { level: 'green', date: matchFile.add_time, name: matchFile.name };
+      const matchNote = (extras.notes || [])
+        .filter(n => kw.some(k => (n.content || '').toLowerCase().includes(k)))
+        .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
+      if (matchNote) return { level: 'yellow', date: matchNote.add_time };
+      return null;
+    }
+
+    function renderAccRows(deals) {
+      return deals.sort((a, b) => toA(b) - toA(a)).map(d => {
+        const extras = S.dealExtras[d.id];
+        const pc = d.participants_count;
+        const cls = ctClassify(d);
+        const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
+        const pcDisp = (pc === null || pc === undefined) ? '—' : String(pc);
+
+        let minutaCell = '<span style="color:var(--mt);font-size:10px">—</span>';
+        let presupCell = '<span style="color:var(--mt);font-size:10px">—</span>';
+        if (extras) {
+          const m = detectMinuta(extras);
+          if (m) minutaCell = `<span style="color:var(--gn);font-size:10px">✓ ${fd(m.date)}</span>`;
+          const p = detectPresupuesto(extras);
+          if (p?.level === 'green') presupCell = `<span style="color:var(--gn);font-size:10px" title="${p.name || ''}">✓ ${fd(p.date)}</span>`;
+          else if (p?.level === 'yellow') presupCell = `<span style="color:var(--yw);font-size:10px">⚠ ${fd(p.date)}</span>`;
+        }
+
+        const ast = actSt(d);
+        let actCell;
+        if (ast === 'ok') actCell = `<span style="color:var(--gn);font-size:10px">✓ ${fd(d.next_activity_date)}</span>`;
+        else if (ast === 'over') actCell = `<span style="color:var(--rd);font-size:10px;font-weight:700">⚠ ${fd(d.next_activity_date)}</span>`;
+        else actCell = `<span style="color:var(--mt);font-size:10px">Sin actividad</span>`;
+
+        const noBadge = cls === 'none' ? '<span style="font-size:9px;font-weight:700;color:#b42318;background:#fef2f2;border:1px solid #fca5a5;border-radius:3px;padding:1px 4px;margin-left:4px">SIN CONTACTO</span>' : '';
+        return `<tr>
+          <td style="max-width:200px">
+            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</div>
+            <div style="font-size:10px;color:var(--mt)">${d.org_name || '—'}${noBadge}</div>
+          </td>
+          <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${pcColor}">${pcDisp}</td>
+          <td>${minutaCell}</td>
+          <td>${presupCell}</td>
+          <td>${actCell}</td>
+          <td class="ar" style="font-family:'JetBrains Mono',monospace;color:#027a48;font-weight:700">${fc(d)}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    async function openCtAcc(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const isOpen = el.style.display === 'table-row';
+      if (isOpen) { el.style.display = 'none'; return; }
+      el.style.display = 'table-row';
+      const deals = _ctAccDeals[id] || [];
+      const needLoad = deals.filter(d => !S.dealExtras[d.id]);
+      if (needLoad.length) {
+        const tb = el.querySelector('.ct-acc-tbody');
+        if (tb) tb.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:14px;color:var(--mt)">Cargando detalles de ${needLoad.length} deal${needLoad.length > 1 ? 's' : ''}…</td></tr>`;
+        await loadDealExtras(needLoad);
+      }
+      const tb = el.querySelector('.ct-acc-tbody');
+      if (tb) tb.innerHTML = renderAccRows(deals);
+    }
+
     function renderContactos() {
       try {
       const selV = document.getElementById('ct-v')?.value || '';
       const base = S.filterBase.length > 0 ? S.filterBase : S.open;
       if (!base || !base.length) {
         document.getElementById('ct-kpis').innerHTML = '';
-        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Cargando datos del filtro…</td></tr>';
+        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="9" class="empty">Cargando datos del filtro…</td></tr>';
         return;
       }
 
-      // Classify a deal by contact count
-      // none=0, mono=1-2, multi=3+
-      const classify = (d) => {
-        const pc = d.participants_count;
-        if (pc === null || pc === undefined) return d.person_id ? 'mono' : 'none';
-        if (pc === 0) return 'none';
-        if (pc <= 2) return 'mono';
-        return 'multi';
-      };
-      const dispPc = (d) => {
-        const pc = d.participants_count;
-        return (pc === null || pc === undefined) ? '—' : String(pc);
-      };
+      Object.keys(_ctAccDeals).forEach(k => delete _ctAccDeals[k]);
 
-      // Group by owner name directo del deal (evita duplicados del campo custom)
       const ownerOf = (d) => d.user_id?.name || d.owner_name || '—';
       const byV = {};
       base.forEach(d => {
         const v = ownerOf(d);
         if (!v || v === '—') return;
         if (!byV[v]) byV[v] = { none: [], mono: [], multi: [], all: [] };
-        const cls = classify(d);
+        const cls = ctClassify(d);
         byV[v][cls].push(d);
         byV[v].all.push(d);
       });
 
-      // Apply vendor filter to KPIs
-      const kpiDeals = selV
-        ? (byV[selV]?.all || [])
-        : Object.values(byV).flatMap(x => x.all);
-      const kNone  = kpiDeals.filter(d => classify(d) === 'none').length;
-      const kMono  = kpiDeals.filter(d => classify(d) === 'mono').length;
-      const kMulti = kpiDeals.filter(d => classify(d) === 'multi').length;
+      const kpiDeals = selV ? (byV[selV]?.all || []) : Object.values(byV).flatMap(x => x.all);
+      const kNone  = kpiDeals.filter(d => ctClassify(d) === 'none').length;
+      const kMono  = kpiDeals.filter(d => ctClassify(d) === 'mono').length;
+      const kMulti = kpiDeals.filter(d => ctClassify(d) === 'multi').length;
       const kCov   = kpiDeals.length ? Math.round(((kpiDeals.length - kNone) / kpiDeals.length) * 100) : 0;
       const kAvg   = kpiDeals.length ? (kpiDeals.reduce((s,d) => s + (d.participants_count || 0), 0) / kpiDeals.length).toFixed(1) : '0.0';
+      const kOver  = kpiDeals.filter(d => actSt(d) === 'over').length;
+      const kNoAct = kpiDeals.filter(d => actSt(d) === 'noact').length;
 
       document.getElementById('ct-kpis').innerHTML = `
         <div class="ct-kpi-row">
@@ -4422,40 +4526,24 @@
           <div class="ct-k neutral">
             <div class="ct-n">${kAvg}</div>
             <div class="ct-lbl">Prom. contactos / deal</div>
-            <div class="ct-sub">${kMono} mono-contacto · ${kMulti} multi-contacto</div>
+            <div class="ct-sub">${kOver} vencidas · ${kNoAct} sin actividad</div>
           </div>
         </div>`;
 
-      // Rows: sort by none desc
       const vendors = Object.entries(byV)
         .filter(([v]) => !selV || v === selV)
         .sort((a, b) => b[1].none.length - a[1].none.length);
 
-      const dealRow = (d) => {
-        const pc = dispPc(d);
-        const cls = classify(d);
-        const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
-        const noContactBadge = cls === 'none' ? '<span style="font-size:9px;font-weight:700;color:#b42318;background:#fef2f2;border:1px solid #fca5a5;border-radius:3px;padding:1px 4px">SIN CONTACTO</span>' : '';
-        return `<tr>
-          <td style="max-width:220px">
-            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</div>
-            <div style="font-size:10px;color:var(--mt)">${d.org_name || '—'} ${noContactBadge}</div>
-          </td>
-          <td style="color:var(--mt);font-size:10px">${gsn(d)}</td>
-          <td class="ar" style="font-family:'JetBrains Mono',monospace;color:#027a48;font-weight:700">${fc(d)}</td>
-          <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${pcColor}">${pc}</td>
-        </tr>`;
-      };
-
       const accBlock = (id, deals, label, cls) => {
         if (!deals.length) return '';
+        _ctAccDeals[id] = deals;
         return `<tr id="${id}" class="ct-acc" style="display:none">
-          <td colspan="7" style="padding:0">
+          <td colspan="9" style="padding:0">
             <div class="ct-acc-in">
               <div class="ct-acc-lbl ${cls}">${label} — ${deals.length} deal${deals.length > 1 ? 's' : ''}</div>
               <table class="ct-acc-t">
-                <thead><tr><th>Deal / Organización</th><th>Etapa</th><th class="ar">Valor</th><th class="ar">Contactos</th></tr></thead>
-                <tbody>${deals.sort((a,b) => toA(b) - toA(a)).map(dealRow).join('')}</tbody>
+                <thead><tr><th>Deal / Organización</th><th class="ar">Contactos</th><th>Minuta</th><th>Presupuesto</th><th>Actividad</th><th class="ar">Valor</th></tr></thead>
+                <tbody class="ct-acc-tbody"><tr><td colspan="6" style="text-align:center;padding:10px;color:var(--mt);font-size:11px">Expandí para cargar detalles</td></tr></tbody>
               </table>
             </div>
           </td>
@@ -4465,19 +4553,22 @@
       const rows = vendors.map(([v, data]) => {
         const total = data.all.length;
         const nN = data.none.length, mN = data.mono.length, xN = data.multi.length;
+        const overN = data.all.filter(d => actSt(d) === 'over').length;
+        const noActN = data.all.filter(d => actSt(d) === 'noact').length;
         const cov = total ? Math.round(((total - nN) / total) * 100) : 0;
         const avg = total ? (data.all.reduce((s,d) => s + (d.participants_count || 0), 0) / total).toFixed(1) : '0';
         const rid = 'ctacc-' + v.replace(/[^a-z0-9]/gi, '-');
         const covColor = cov >= 80 ? '#027a48' : cov >= 50 ? '#92400e' : '#b42318';
-        const nCell = nN > 0
-          ? `<span class="ct-num red" onclick="toggleCtAcc('${rid}-none')">${nN}</span>`
-          : `<span class="ct-num zero">0</span>`;
-        const mCell = mN > 0
-          ? `<span class="ct-num amb" onclick="toggleCtAcc('${rid}-mono')">${mN}</span>`
-          : `<span class="ct-num zero">0</span>`;
-        const xCell = xN > 0
-          ? `<span class="ct-num grn" onclick="toggleCtAcc('${rid}-multi')">${xN}</span>`
-          : `<span class="ct-num zero">0</span>`;
+
+        const nCell  = nN > 0    ? `<span class="ct-num red" onclick="openCtAcc('${rid}-none')">${nN}</span>`    : `<span class="ct-num zero">0</span>`;
+        const mCell  = mN > 0    ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-mono')">${mN}</span>`    : `<span class="ct-num zero">0</span>`;
+        const xCell  = xN > 0    ? `<span class="ct-num grn" onclick="openCtAcc('${rid}-multi')">${xN}</span>`  : `<span class="ct-num zero">0</span>`;
+        const ovCell = overN > 0  ? `<span class="ct-num red" onclick="openCtAcc('${rid}-over')">${overN}</span>` : `<span class="ct-num zero">0</span>`;
+        const naCell = noActN > 0 ? `<span class="ct-num amb" onclick="openCtAcc('${rid}-noact')">${noActN}</span>` : `<span class="ct-num zero">0</span>`;
+
+        const overDeals  = data.all.filter(d => actSt(d) === 'over');
+        const noActDeals = data.all.filter(d => actSt(d) === 'noact');
+
         return `
           <tr>
             <td><strong>${v}</strong></td>
@@ -4485,6 +4576,8 @@
             <td class="ar">${nCell}</td>
             <td class="ar">${mCell}</td>
             <td class="ar">${xCell}</td>
+            <td class="ar">${ovCell}</td>
+            <td class="ar">${naCell}</td>
             <td class="ar" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mt)">${avg}</td>
             <td>
               <div style="display:flex;align-items:center;gap:6px">
@@ -4495,17 +4588,13 @@
           </tr>
           ${accBlock(rid+'-none',  data.none,  'Sin contacto',   'red')}
           ${accBlock(rid+'-mono',  data.mono,  'Mono-contacto',  'amb')}
-          ${accBlock(rid+'-multi', data.multi, 'Multi-contacto', 'grn')}`;
+          ${accBlock(rid+'-multi', data.multi, 'Multi-contacto', 'grn')}
+          ${accBlock(rid+'-over',  overDeals,  'Actividad vencida', 'red')}
+          ${accBlock(rid+'-noact', noActDeals, 'Sin actividad',  'amb')}`;
       }).join('');
 
-      document.getElementById('ct-tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
-      } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Error: ' + e.message + '</td></tr>'; }
-    }
-
-    function toggleCtAcc(id) {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'table-row' : 'none';
+      document.getElementById('ct-tbody').innerHTML = rows || '<tr><td colspan="9" class="empty">Sin datos</td></tr>';
+      } catch(e) { console.error('renderContactos error:', e); document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="9" class="empty">Error: ' + e.message + '</td></tr>'; }
     }
 
     // ════════════════════════════════════════
