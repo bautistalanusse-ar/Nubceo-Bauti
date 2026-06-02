@@ -1184,6 +1184,46 @@
       transition: width .4s
     }
 
+    /* ── CONTACTOS ── */
+    .ct-kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px }
+    @media (max-width: 700px) { .ct-kpi-row { grid-template-columns: repeat(2,1fr) } }
+    .ct-k { padding: 16px; background: var(--sur); border: 1px solid var(--bdr); border-radius: var(--r); position: relative; overflow: hidden }
+    .ct-k::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--ctc, var(--bl)) }
+    .ct-k.danger { --ctc: #b42318 }
+    .ct-k.ok { --ctc: #027a48 }
+    .ct-k.neutral { --ctc: #5925dc }
+    .ct-n { font-size: 36px; font-weight: 800; letter-spacing: -1.5px; line-height: 1; color: var(--tx) }
+    .ct-n.red { color: #b42318 }
+    .ct-n.grn { color: #027a48 }
+    .ct-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--mt); margin-top: 6px }
+    .ct-sub { font-size: 11px; color: var(--mt); margin-top: 3px }
+    .ct-num { font-family: 'JetBrains Mono', monospace; font-weight: 700; cursor: pointer; border-radius: 3px; transition: opacity .15s }
+    .ct-num:hover { opacity: .75; text-decoration: underline }
+    .ct-num.red { color: #b42318 }
+    .ct-num.amb { color: #92400e }
+    .ct-num.grn { color: #027a48 }
+    .ct-num.zero { color: var(--mt); font-weight: 400; cursor: default }
+    .ct-num.zero:hover { opacity: 1; text-decoration: none }
+    .ct-cov { height: 4px; background: var(--sur3); border-radius: 2px; margin-top: 4px }
+    .ct-cov-f { height: 100%; border-radius: 2px; transition: width .3s }
+    .ct-acc { background: #f9fafb; border-bottom: 1px solid var(--bdr) }
+    .ct-acc-in { padding: 12px 16px 14px; border-top: 2px solid var(--bdr) }
+    .ct-acc-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px }
+    .ct-acc-lbl.red { color: #b42318 }
+    .ct-acc-lbl.amb { color: #92400e }
+    .ct-acc-lbl.grn { color: #027a48 }
+    .ct-acc-t { width: 100%; border-collapse: collapse; font-size: 11px }
+    .ct-acc-t th { color: var(--mt); font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 4px 8px; border-bottom: 1px solid var(--bdr); text-align: left }
+    .ct-acc-t th.ar { text-align: right }
+    .ct-acc-t td { padding: 6px 8px; border-bottom: 1px solid #f3f4f6; color: var(--tx2) }
+    .ct-acc-t td:first-child { color: var(--tx); font-weight: 500; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+    .ct-acc-t tr:last-child td { border-bottom: none }
+    .ct-tbl { width: 100%; border-collapse: collapse }
+    .ct-tbl th { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--mt); padding: 8px 10px; border-bottom: 2px solid var(--bdr); text-align: right }
+    .ct-tbl th:first-child { text-align: left }
+    .ct-tbl td { padding: 10px; border-bottom: 1px solid var(--bdr); font-size: 12px; vertical-align: middle }
+    .ct-tbl .ar { text-align: right }
+
     /* ── RANKING ── */
     .rk-grid {
       display: grid;
@@ -2179,6 +2219,13 @@
         </svg>
         Deals Ganados
       </div>
+      <div class="sb-lk" data-p="contactos" onclick="go('contactos',this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+        Contactos
+      </div>
 
     </div>
     <div class="sb-bot">
@@ -2794,7 +2841,32 @@
         </div>
       </div>
 
-
+      <!-- CONTACTOS -->
+      <div class="page" id="page-contactos">
+        <div class="fr">
+          <label>Comercial:</label>
+          <select id="ct-v" onchange="renderContactos()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <div id="ct-kpis"></div>
+        <div class="tw">
+          <table class="ct-tbl">
+            <thead>
+              <tr>
+                <th style="text-align:left">Comercial</th>
+                <th>Deals</th>
+                <th style="color:#b42318">Sin contacto</th>
+                <th style="color:#92400e">Mono-contacto</th>
+                <th style="color:#027a48">Multi-contacto</th>
+                <th>Prom.</th>
+                <th style="min-width:90px">Cobertura</th>
+              </tr>
+            </thead>
+            <tbody id="ct-tbody"></tbody>
+          </table>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -2843,6 +2915,13 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <span>Ganados</span>
+    </div>
+    <div class="bn-item" data-p="contactos" onclick="go('contactos',this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      <span>Contactos</span>
     </div>
 
   </nav>
@@ -3127,7 +3206,8 @@
     // NAV
     // ════════════════════════════════════════
     const PM_TXT = {
-      dashboard: ['Dashboard General', 'Pipeline activo — ARG · URY · PAR'],
+      dashboard:  ['Dashboard General',    'Pipeline activo — ARG · URY · PAR'],
+      contactos:  ['Cobertura de Contactos', 'Deals abiertos por comercial — sin / mono / multi contacto'],
       ranking: ['Ranking de Vendedores', 'Seguimiento del objetivo mensual'],
       forecast: ['Forecast del Mes', 'Proyección por fecha de cierre estimada'],
       dev: ['Desarrollo de Cuentas', 'Pipeline 158 · Deals activos y ganados'],
@@ -3152,7 +3232,7 @@
       const vs = new Set();
       [...S.open, ...S.won].forEach(d => { const v = gv(d); if (v && v !== '—') vs.add(v); });
       const opts = '<option value="">Todos</option>' + [...vs].sort().map(v => `<option value="${v}">${v}</option>`).join('');
-      ['f-v', 'fc-vf'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
+      ['f-v', 'fc-vf', 'ct-v'].forEach(id => { const s = document.getElementById(id); if (s) s.innerHTML = opts; });
     }
 
     // ── Icon system ────────────────────────────────────────────
@@ -3184,7 +3264,7 @@
       });
     }
 
-    function renderAll() { renderDash(); renderRanking(); renderForecast(); renderDev(); renderKanban(); renderWon(); applyIconSystem(); }
+    function renderAll() { renderDash(); renderRanking(); renderForecast(); renderDev(); renderKanban(); renderWon(); renderContactos(); applyIconSystem(); }
 
     // ════════════════════════════════════════
     // DESARROLLO DE CUENTAS
@@ -4256,6 +4336,149 @@
       <td>${at}</td>
     </tr>`;
       }).join('');
+    }
+
+    // ════════════════════════════════════════
+    // CONTACTOS
+    // ════════════════════════════════════════
+    function renderContactos() {
+      const selV = document.getElementById('ct-v')?.value || '';
+      const base = S.filterBase.length > 0 ? S.filterBase : S.open;
+
+      // Classify a deal by contact count
+      const classify = (d) => {
+        const pc = d.participants_count;
+        if (pc === null || pc === undefined) return d.person_id ? 'mono' : 'none';
+        if (pc === 0) return 'none';
+        if (pc === 1) return 'mono';
+        return 'multi';
+      };
+      const dispPc = (d) => {
+        const pc = d.participants_count;
+        return (pc === null || pc === undefined) ? '—' : String(pc);
+      };
+
+      // Group by vendor
+      const byV = {};
+      base.forEach(d => {
+        const v = gv(d);
+        if (!v || v === '—') return;
+        if (!byV[v]) byV[v] = { none: [], mono: [], multi: [], all: [] };
+        const cls = classify(d);
+        byV[v][cls].push(d);
+        byV[v].all.push(d);
+      });
+
+      // Apply vendor filter to KPIs
+      const kpiDeals = selV
+        ? (byV[selV]?.all || [])
+        : Object.values(byV).flatMap(x => x.all);
+      const kNone  = kpiDeals.filter(d => classify(d) === 'none').length;
+      const kMono  = kpiDeals.filter(d => classify(d) === 'mono').length;
+      const kMulti = kpiDeals.filter(d => classify(d) === 'multi').length;
+      const kCov   = kpiDeals.length ? Math.round(((kpiDeals.length - kNone) / kpiDeals.length) * 100) : 0;
+      const kAvg   = kpiDeals.length ? (kpiDeals.reduce((s,d) => s + (d.participants_count || 0), 0) / kpiDeals.length).toFixed(1) : '0.0';
+
+      document.getElementById('ct-kpis').innerHTML = `
+        <div class="ct-kpi-row">
+          <div class="ct-k">
+            <div class="ct-n">${kpiDeals.length}</div>
+            <div class="ct-lbl">Deals abiertos</div>
+            <div class="ct-sub">${kNone} sin · ${kMono} mono · ${kMulti} multi</div>
+          </div>
+          <div class="ct-k danger">
+            <div class="ct-n red">${kNone}</div>
+            <div class="ct-lbl">Sin contacto</div>
+            <div class="ct-sub">${kpiDeals.length ? Math.round((kNone/kpiDeals.length)*100) : 0}% del pipeline — riesgo alto</div>
+          </div>
+          <div class="ct-k ok">
+            <div class="ct-n grn">${kCov}%</div>
+            <div class="ct-lbl">Cobertura</div>
+            <div class="ct-sub">Deals con al menos 1 contacto</div>
+          </div>
+          <div class="ct-k neutral">
+            <div class="ct-n">${kAvg}</div>
+            <div class="ct-lbl">Prom. contactos / deal</div>
+            <div class="ct-sub">${kMono} mono-contacto · ${kMulti} multi-contacto</div>
+          </div>
+        </div>`;
+
+      // Rows: sort by none desc
+      const vendors = Object.entries(byV)
+        .filter(([v]) => !selV || v === selV)
+        .sort((a, b) => b[1].none.length - a[1].none.length);
+
+      const dealRow = (d) => {
+        const pc = dispPc(d);
+        const cls = classify(d);
+        const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
+        return `<tr>
+          <td>${d.title || '—'}</td>
+          <td>${d.org_name || '—'}</td>
+          <td>${gsn(d)}</td>
+          <td class="ar" style="font-family:'JetBrains Mono',monospace;color:#027a48;font-weight:700">${fc(d)}</td>
+          <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${pcColor}">${pc}</td>
+        </tr>`;
+      };
+
+      const accBlock = (id, deals, label, cls) => {
+        if (!deals.length) return '';
+        return `<tr class="ct-acc">
+          <td colspan="7" style="padding:0">
+            <div class="ct-acc-in" id="${id}" style="display:none">
+              <div class="ct-acc-lbl ${cls}">${label} — ${deals.length} deal${deals.length > 1 ? 's' : ''}</div>
+              <table class="ct-acc-t">
+                <thead><tr><th>Deal</th><th>Organización</th><th>Etapa</th><th class="ar">Valor</th><th class="ar">Contactos</th></tr></thead>
+                <tbody>${deals.sort((a,b) => toA(b) - toA(a)).map(dealRow).join('')}</tbody>
+              </table>
+            </div>
+          </td>
+        </tr>`;
+      };
+
+      const rows = vendors.map(([v, data]) => {
+        const total = data.all.length;
+        const nN = data.none.length, mN = data.mono.length, xN = data.multi.length;
+        const cov = total ? Math.round(((total - nN) / total) * 100) : 0;
+        const avg = total ? (data.all.reduce((s,d) => s + (d.participants_count || 0), 0) / total).toFixed(1) : '0';
+        const rid = 'ctacc-' + v.replace(/[^a-z0-9]/gi, '-');
+        const covColor = cov >= 80 ? '#027a48' : cov >= 50 ? '#92400e' : '#b42318';
+        const nCell = nN > 0
+          ? `<span class="ct-num red" onclick="toggleCtAcc('${rid}-none')">${nN}</span>`
+          : `<span class="ct-num zero">0</span>`;
+        const mCell = mN > 0
+          ? `<span class="ct-num amb" onclick="toggleCtAcc('${rid}-mono')">${mN}</span>`
+          : `<span class="ct-num zero">0</span>`;
+        const xCell = xN > 0
+          ? `<span class="ct-num grn" onclick="toggleCtAcc('${rid}-multi')">${xN}</span>`
+          : `<span class="ct-num zero">0</span>`;
+        return `
+          <tr>
+            <td><strong>${v}</strong></td>
+            <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700">${total}</td>
+            <td class="ar">${nCell}</td>
+            <td class="ar">${mCell}</td>
+            <td class="ar">${xCell}</td>
+            <td class="ar" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--mt)">${avg}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:6px">
+                <div class="ct-cov" style="flex:1"><div class="ct-cov-f" style="width:${cov}%;background:${covColor}"></div></div>
+                <span style="font-size:10px;font-weight:700;color:${covColor};min-width:30px;text-align:right">${cov}%</span>
+              </div>
+            </td>
+          </tr>
+          ${accBlock(rid+'-none',  data.none,  'Sin contacto',   'red')}
+          ${accBlock(rid+'-mono',  data.mono,  'Mono-contacto',  'amb')}
+          ${accBlock(rid+'-multi', data.multi, 'Multi-contacto', 'grn')}`;
+      }).join('');
+
+      document.getElementById('ct-tbody').innerHTML = rows || '<tr><td colspan="7" class="empty">Sin datos</td></tr>';
+    }
+
+    function toggleCtAcc(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = el.style.display === 'none' ? 'block' : 'none';
     }
 
     // ════════════════════════════════════════
