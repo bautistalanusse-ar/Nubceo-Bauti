@@ -3117,6 +3117,14 @@
       hideLd(); renderAll(); buildSels(); saveSnapshot(); initHistForecast();
       document.getElementById('sb-ts').textContent = 'Act: ' + new Date().toLocaleTimeString('es-AR');
       setRef(false);
+      // Carga filtro 2636 en background (1 sola request, no bloquea)
+      pdG('/deals', { filter_id: 2636, status: 'open', limit: 500 }, 12000).then(({ data }) => {
+        if (data && data.length) {
+          S.filterBase = data;
+          renderDash();
+          if (document.getElementById('page-contactos').classList.contains('on')) renderContactos();
+        }
+      });
     }
 
     function loadFX() {
@@ -3511,7 +3519,7 @@
     function renderDash() {
       const now = new Date(), cm = now.getMonth(), cy = now.getFullYear(), cq = Math.floor(cm / 3);
       const MN = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      const open = S.open;
+      const open = S.filterBase.length > 0 ? S.filterBase : S.open;
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
       const noAct   = open.filter(d => actSt(d) === 'noact');  // sin actividad alguna
@@ -4342,10 +4350,10 @@
     function renderContactos() {
       try {
       const selV = document.getElementById('ct-v')?.value || '';
-      const base = S.open;
+      const base = S.filterBase.length > 0 ? S.filterBase : S.open;
       if (!base || !base.length) {
         document.getElementById('ct-kpis').innerHTML = '';
-        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Cargando datos…</td></tr>';
+        document.getElementById('ct-tbody').innerHTML = '<tr><td colspan="7" class="empty">Cargando datos del filtro…</td></tr>';
         return;
       }
 
