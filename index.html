@@ -4367,11 +4367,12 @@
       }
 
       // Classify a deal by contact count
+      // none=0, mono=1-2, multi=3+
       const classify = (d) => {
         const pc = d.participants_count;
         if (pc === null || pc === undefined) return d.person_id ? 'mono' : 'none';
         if (pc === 0) return 'none';
-        if (pc === 1) return 'mono';
+        if (pc <= 2) return 'mono';
         return 'multi';
       };
       const dispPc = (d) => {
@@ -4436,8 +4437,10 @@
         const pcColor = cls === 'none' ? '#b42318' : cls === 'mono' ? '#92400e' : '#027a48';
         const noContactBadge = cls === 'none' ? '<span style="font-size:9px;font-weight:700;color:#b42318;background:#fef2f2;border:1px solid #fca5a5;border-radius:3px;padding:1px 4px">SIN CONTACTO</span>' : '';
         return `<tr>
-          <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'} ${noContactBadge}</td>
-          <td>${d.org_name || '—'}</td>
+          <td style="max-width:220px">
+            <div style="font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</div>
+            <div style="font-size:10px;color:var(--mt)">${d.org_name || '—'} ${noContactBadge}</div>
+          </td>
           <td style="color:var(--mt);font-size:10px">${gsn(d)}</td>
           <td class="ar" style="font-family:'JetBrains Mono',monospace;color:#027a48;font-weight:700">${fc(d)}</td>
           <td class="ar" style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${pcColor}">${pc}</td>
@@ -4446,12 +4449,12 @@
 
       const accBlock = (id, deals, label, cls) => {
         if (!deals.length) return '';
-        return `<tr class="ct-acc">
+        return `<tr id="${id}" class="ct-acc" style="display:none">
           <td colspan="7" style="padding:0">
-            <div class="ct-acc-in" id="${id}" style="display:none">
+            <div class="ct-acc-in">
               <div class="ct-acc-lbl ${cls}">${label} — ${deals.length} deal${deals.length > 1 ? 's' : ''}</div>
               <table class="ct-acc-t">
-                <thead><tr><th>Deal</th><th>Organización</th><th>Etapa</th><th class="ar">Valor</th><th class="ar">Contactos</th></tr></thead>
+                <thead><tr><th>Deal / Organización</th><th>Etapa</th><th class="ar">Valor</th><th class="ar">Contactos</th></tr></thead>
                 <tbody>${deals.sort((a,b) => toA(b) - toA(a)).map(dealRow).join('')}</tbody>
               </table>
             </div>
@@ -4502,7 +4505,7 @@
     function toggleCtAcc(id) {
       const el = document.getElementById(id);
       if (!el) return;
-      el.style.display = el.style.display === 'none' ? 'block' : 'none';
+      el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'table-row' : 'none';
     }
 
     // ════════════════════════════════════════
