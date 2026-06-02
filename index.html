@@ -3026,7 +3026,7 @@
         const [rawO, rawW, rawNoAct] = await Promise.all([
           pdAll('/deals', { status: 'open' }, 18),
           pdAll('/deals', { status: 'won', sort: 'won_time DESC' }, 5),
-          pdAll('/deals', { filter_id: 2636 }, 4)
+          pdAll('/deals', { filter_id: 2636, status: 'open' }, 4)
         ]);
         S.open = dedup(rawO.filter(d => OPEN_P.has(d.pipeline_id)));
         S.won = dedup(rawW.filter(d => WON_P.has(d.pipeline_id)));
@@ -3436,8 +3436,8 @@
       const open = S.open;
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
-      // Usa el filtro 2636 de Pipedrive (más preciso que el cálculo local)
-      const noAct = S.filterNoAct.length > 0 ? S.filterNoAct : open.filter(d => actSt(d) === 'noact');
+      // Siempre usa el filtro 2636 de Pipedrive
+      const noAct = S.filterNoAct;
       const overAct = open.filter(d => actSt(d) === 'over');
 
       // Deals closing this month
