@@ -4391,32 +4391,36 @@
       }
     }
 
+    // Strips HTML tags and entities from Pipedrive note content before keyword matching
+    function stripHtml(s) {
+      return (s || '').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').toLowerCase();
+    }
+
     function detectMinuta(extras) {
-      const kw = ['minuta', 'acta', 'gemini notes', 'resumen de reuni'];
+      // Keyword patterns observed in real Pipedrive notes
+      const kw = ['minuta', 'acta', 'breve resumen', 'informe de la reuni', 'resumen de reuni', 'gemini notes'];
       const matchNote = (extras.notes || [])
-        .filter(n => kw.some(k => (n.content || '').toLowerCase().includes(k)))
+        .filter(n => kw.some(k => stripHtml(n.content).includes(k)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       const matchFile = (extras.files || [])
         .filter(f => kw.some(k => (f.name || '').toLowerCase().includes(k)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       const candidates = [matchNote, matchFile].filter(Boolean);
       if (!candidates.length) return null;
-      const oldest = candidates.sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
-      return { date: oldest.add_time };
+      return { date: candidates.sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0].add_time };
     }
 
     function detectPresupuesto(extras) {
-      const kw = ['presupuesto', 'propuesta', 'cotizacion', 'cotización', 'oferta', 'quote'];
-      const exts = ['pdf', 'xlsx', 'xls', 'docx', 'doc'];
+      // Files: any PDF/Excel/Word attached is considered a commercial proposal (filenames use company names)
+      const exts = ['pdf', 'xlsx', 'xls', 'docx', 'doc', 'pptx', 'ppt'];
       const matchFile = (extras.files || [])
-        .filter(f => {
-          const name = (f.name || '').toLowerCase();
-          return kw.some(k => name.includes(k)) || exts.some(e => name.endsWith('.' + e));
-        })
+        .filter(f => exts.some(e => (f.name || '').toLowerCase().endsWith('.' + e)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       if (matchFile) return { level: 'green', date: matchFile.add_time, name: matchFile.name };
+      // Notes: explicit mention of a proposal/budget being sent
+      const kwNote = ['propuesta comercial', 'presupuesto', 'cotizaci', 'propuesta económica', 'oferta comercial', 'adjuntamos la propuesta', 'adjunto la propuesta', 'adjunto el presupuesto'];
       const matchNote = (extras.notes || [])
-        .filter(n => kw.some(k => (n.content || '').toLowerCase().includes(k)))
+        .filter(n => kwNote.some(k => stripHtml(n.content).includes(k)))
         .sort((a, b) => new Date(a.add_time) - new Date(b.add_time))[0];
       if (matchNote) return { level: 'yellow', date: matchNote.add_time };
       return null;
