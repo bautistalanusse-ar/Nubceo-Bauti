@@ -3189,33 +3189,26 @@
     function sumA(a) { return a.reduce((s, d) => s + toA(d), 0); }
 
     // Activity status for a deal
-    function actStatus(d) {
-      // undone_activities_count = pending future activities
-      // If no undone and no done → no activity at all
-      const pend = d.undone_activities_count || 0;
-      const done = d.done_activities_count || 0;
-      const next = d.next_activity_date;
-      const last = d.last_activity_date;
-      if (pend === 0 && done === 0) return 'noact'; // no activity ever
-      if (pend === 0 && done > 0) return 'noact'; // all done, nothing scheduled
-      // Has pending — check if next_activity_date is in the past
-      if (next) {
-        const n = new Date(next); n.setHours(0, 0, 0, 0); const today = new Date(); today.setHicks(0, 0, 0, 0);
-        if (n < today) return 'over'; // overdue
-      }
-      return 'ok';
-    }
+    // 'noact'       = sin actividades pendientes
+    // 'ok'          = próxima actividad en el futuro
+    // 'over'        = actividad vencida, sin futuras (solo 1 pendiente)
+    // 'over_future' = actividad vencida + hay más pendientes (posiblemente futuras)
     function actSt(d) {
       const pend = d.undone_activities_count || 0;
-      if (pend > 0) {
-        if (d.next_activity_date) {
-          const n = new Date(d.next_activity_date); n.setHours(0,0,0,0);
-          const t = new Date(); t.setHours(0,0,0,0);
-          return n < t ? 'over' : 'ok';
-        }
-        return 'ok';
+      if (pend === 0 || !d.next_activity_date) return 'noact';
+
+      const now = new Date();
+      let isOverdue;
+      if (d.next_activity_time) {
+        isOverdue = new Date(d.next_activity_date + 'T' + d.next_activity_time) < now;
+      } else {
+        const nextDay = new Date(d.next_activity_date); nextDay.setHours(0, 0, 0, 0);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        isOverdue = nextDay < today;
       }
-      return 'noact'; // sin actividad planificada
+
+      if (isOverdue) return pend > 1 ? 'over_future' : 'over';
+      return 'ok';
     }
 
     // ════════════════════════════════════════
@@ -3505,7 +3498,8 @@
             const dc = days !== null && days < 0 ? '#b42318' : days !== null && days <= 7 ? '#b54708' : '#9aa1b1';
             const at = ast === 'noact'
               ? '<span class="tag tr">⚠ Sin act.</span>'
-              : ast === 'over' ? '<span class="tag ty">🕐 Vencida</span>'
+              : (ast === 'over' || ast === 'over_future')
+                ? `<span class="tag ty">🕐 Vencida${ast === 'over_future' ? ' +fut.' : ''}</span>`
               : '<span class="tag tg">✓ Al día</span>';
             return `<tr>
               <td class="tb" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
@@ -3539,7 +3533,7 @@
       const openWithVal = open.filter(d => (d.value || 0) > 0);
       const openNoVal   = open.filter(d => !((d.value || 0) > 0));
       const noAct   = open.filter(d => actSt(d) === 'noact');  // sin actividad alguna
-      const overAct = open.filter(d => actSt(d) === 'over');  // actividad vencida
+      const overAct = open.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; });  // actividad vencida
       const noFutAct = noAct.length + overAct.length;          // total sin actividad futura
 
       // Deals closing this month
@@ -4268,10 +4262,10 @@
         const fd = deals.filter(d => d.pipeline_id === f.id);
         const tot = sumA(fd);
         const bV = {};
-        fd.forEach(d => { const v = gv(d); if (!bV[v]) bV[v] = { n: 0, v: 0, noact: 0, over: 0 }; bV[v].n++; bV[v].v += toA(d); const st = actSt(d); if (st === 'noact') bV[v].noact++; else if (st === 'over') bV[v].over++; });
+        fd.forEach(d => { const v = gv(d); if (!bV[v]) bV[v] = { n: 0, v: 0, noact: 0, over: 0 }; bV[v].n++; bV[v].v += toA(d); const st = actSt(d); if (st === 'noact') bV[v].noact++; else if (st === 'over' || st === 'over_future') bV[v].over++; });
         const rows = Object.entries(bV).sort((a, b) => b[1].v - a[1].v);
         const noActCount = fd.filter(d => actSt(d) === 'noact').length;
-        const overCount = fd.filter(d => actSt(d) === 'over').length;
+        const overCount = fd.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; }).length;
         const vmax = Math.max(...rows.map(r => r[1].v)) || 1;
         return `<div class="fc-card">
       <div class="fc-hd">
@@ -4302,10 +4296,12 @@
       }).join('');
 
       // Actividad status
-      const noact = deals.filter(d => actSt(d) === 'noact');
-      const over = deals.filter(d => actSt(d) === 'over');
-      document.getElementById('n-noact').textContent = noact.length;
-      document.getElementById('n-overact').textContent = over.length;
+      // "Sin actividad futura" = noact + over (overdue sin futuras)
+      // "Actividad vencida"    = over + over_future (cualquier vencida)
+      const sinFutura = deals.filter(d => { const s = actSt(d); return s === 'noact' || s === 'over'; });
+      const vencidas = deals.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; });
+      document.getElementById('n-noact').textContent = sinFutura.length;
+      document.getElementById('n-overact').textContent = vencidas.length;
 
       const miniRow = d => `<tr>
     <td class="tb" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
@@ -4313,8 +4309,8 @@
     <td class="tm" class="ar-vl">${fc(d)}</td>
     <td class="tm col-hide">${fd(d.expected_close_date)}</td>
   </tr>`;
-      document.getElementById('tbl-noact-fc').innerHTML = noact.length ? noact.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('🎉', 'Sin deals inactivos', 'Todos tienen actividades planificadas');
-      document.getElementById('tbl-overact-fc').innerHTML = over.length ? over.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('✅', 'Todo al día', 'Ninguna actividad se ha vencido');
+      document.getElementById('tbl-noact-fc').innerHTML = sinFutura.length ? sinFutura.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('🎉', 'Sin deals inactivos', 'Todos tienen actividades planificadas');
+      document.getElementById('tbl-overact-fc').innerHTML = vencidas.length ? vencidas.sort((a, b) => toA(b) - toA(a)).map(miniRow).join('') : emptySt('✅', 'Todo al día', 'Ninguna actividad se ha vencido');
 
       renderFcTable();
     }
@@ -4338,7 +4334,11 @@
       });
       if (pf) deals = deals.filter(d => String(d.pipeline_id) === pf);
       if (vf) deals = deals.filter(d => gv(d) === vf);
-      if (af) deals = deals.filter(d => actSt(d) === af);
+      if (af) deals = deals.filter(d => {
+        const s = actSt(d);
+        if (af === 'over') return s === 'over' || s === 'over_future';
+        return s === af;
+      });
       deals.sort((a, b) => new Date(a.expected_close_date) - new Date(b.expected_close_date));
       const tb = document.getElementById('tbl-fc');
       if (!deals.length) { tb.innerHTML = emptySt('🔎', 'Sin deals', 'No se encontraron deals en este funnel'); return; }
@@ -4347,7 +4347,13 @@
         const dc = days < 0 ? 'tr' : days <= 7 ? 'ty' : 'tg';
         const dl = days < 0 ? `-${Math.abs(days)}d` : days === 0 ? 'Hoy' : `+${days}d`;
         const ast = actSt(d);
-        const at = ast === 'noact' ? '<span class="tag tr">⚠ Sin act.</span>' : ast === 'over' ? '<span class="tag ty">🕐 Vencida</span>' : '<span class="tag tg">✓ Al día</span>';
+        const at = ast === 'noact'
+          ? '<span class="tag tr">⚠ Sin act.</span>'
+          : ast === 'over'
+            ? '<span class="tag ty">🕐 Vencida</span><span class="tag tgr" style="margin-left:3px">sin futura</span>'
+            : ast === 'over_future'
+              ? '<span class="tag ty">🕐 Vencida</span><span class="tag tb2" style="margin-left:3px">📅 Prox. act.</span>'
+              : '<span class="tag tg">✓ Al día</span>';
         return `<tr>
       <td class="tb" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.title || '—'}</td>
       <td class="col-hide" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.org_name || '—'}</td>
@@ -4635,7 +4641,7 @@
       const kMulti = kpiDeals.filter(d => ctClassify(d) === 'multi').length;
       const kCov   = kpiDeals.length ? Math.round(((kpiDeals.length - kNone) / kpiDeals.length) * 100) : 0;
       const kAvg   = kpiDeals.length ? (kpiDeals.reduce((s,d) => s + (d.participants_count || 0), 0) / kpiDeals.length).toFixed(1) : '0.0';
-      const kOver  = kpiDeals.filter(d => actSt(d) === 'over').length;
+      const kOver  = kpiDeals.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; }).length;
       const kNoAct = kpiDeals.filter(d => actSt(d) === 'noact').length;
 
       document.getElementById('ct-kpis').innerHTML = `
@@ -4699,7 +4705,7 @@
       const rows = vendors.map(([v, data]) => {
         const total = data.all.length;
         const nN = data.none.length, mN = data.mono.length, xN = data.multi.length;
-        const overN = data.all.filter(d => actSt(d) === 'over').length;
+        const overN = data.all.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; }).length;
         const noActN = data.all.filter(d => actSt(d) === 'noact').length;
         const cov = total ? Math.round(((total - nN) / total) * 100) : 0;
         const avg = total ? (data.all.reduce((s,d) => s + (d.participants_count || 0), 0) / total).toFixed(1) : '0';
@@ -4716,7 +4722,7 @@
         const smCell = `<span style="color:var(--mt)">—</span>`;
         const spCell = `<span style="color:var(--mt)">—</span>`;
 
-        const overDeals  = data.all.filter(d => actSt(d) === 'over');
+        const overDeals  = data.all.filter(d => { const s = actSt(d); return s === 'over' || s === 'over_future'; });
         const noActDeals = data.all.filter(d => actSt(d) === 'noact');
 
         return `
