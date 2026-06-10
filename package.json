@@ -1,6 +1,7 @@
 {
   "name": "nubceo-sales-hub",
+  "private": true,
   "engines": {
-    "node": "24.x"
+    "node": "20.x"
   }
 }
