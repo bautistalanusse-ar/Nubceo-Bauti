@@ -2237,23 +2237,33 @@
     </div>
   </nav>
 
-  <!-- NUBO STATS MODAL -->
-  <div id="ns-modal" style="display:none;position:fixed;inset:0;background:rgba(10,13,20,.6);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this)closeNuboStats()">
-    <div style="background:var(--sur);border-radius:18px;padding:28px;width:min(520px,95vw);max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.15)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <div>
-          <div style="font-size:15px;font-weight:800">📊 Nubo Stats</div>
-          <div style="font-size:10px;color:var(--mt);margin-top:2px">GET /api/nubo-stats</div>
+  <!-- NUBO STATS JARVIS PANEL -->
+  <div id="ns-modal" onclick="if(event.target===this)closeNuboStats()" style="display:none;position:fixed;inset:0;z-index:999;align-items:flex-end;justify-content:flex-end;padding:20px;pointer-events:none">
+    <div id="ns-panel" style="pointer-events:all;width:min(400px,95vw);background:#0a0f1e;border:1px solid rgba(0,210,255,.18);border-radius:16px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,210,255,.08),0 24px 64px rgba(0,0,0,.6);font-family:'JetBrains Mono',monospace">
+      <!-- header -->
+      <div style="padding:14px 18px 12px;border-bottom:1px solid rgba(0,210,255,.1);display:flex;align-items:center;justify-content:space-between;background:rgba(0,210,255,.04)">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:8px;height:8px;border-radius:50%;background:#00d2ff;box-shadow:0 0 8px #00d2ff;animation:ns-pulse 2s infinite"></div>
+          <span style="color:#00d2ff;font-size:11px;font-weight:700;letter-spacing:1px">NUBO · BRIEFING</span>
         </div>
-        <button onclick="closeNuboStats()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:8px;padding:5px 10px;cursor:pointer;font-size:12px;color:var(--mt)">✕</button>
+        <button onclick="closeNuboStats()" style="background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:16px;padding:0 4px;line-height:1">×</button>
       </div>
-      <div id="ns-body">
-        <div style="text-align:center;padding:32px;color:var(--mt);font-size:12px">
-          <div style="font-size:24px;margin-bottom:8px">⏳</div>Cargando…
-        </div>
+      <!-- body -->
+      <div id="ns-body" style="padding:16px 18px 18px;max-height:70vh;overflow-y:auto">
+        <div style="color:rgba(0,210,255,.5);font-size:10px;text-align:center;padding:24px 0">inicializando…</div>
+      </div>
+      <!-- footer -->
+      <div style="padding:10px 18px;border-top:1px solid rgba(0,210,255,.08);display:flex;justify-content:space-between;align-items:center">
+        <span id="ns-ts" style="font-size:9px;color:rgba(255,255,255,.2)">—</span>
+        <button onclick="openNuboStats()" style="background:rgba(0,210,255,.1);border:1px solid rgba(0,210,255,.2);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:9px;color:#00d2ff;font-family:'JetBrains Mono',monospace">↻ refresh</button>
       </div>
     </div>
   </div>
+  <style>
+    @keyframes ns-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    @keyframes ns-in { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+    #ns-panel { animation: ns-in .25s ease }
+  </style>
 
   <div id="main">
     <header id="mob-header">
@@ -5192,21 +5202,19 @@
     }
 
     // ════════════════════════════════════════
-    // NUBO STATS MODAL
+    // NUBO STATS — JARVIS PANEL
     // ════════════════════════════════════════
     function openNuboStats() {
       const modal = document.getElementById('ns-modal');
       modal.style.display = 'flex';
-      document.getElementById('ns-body').innerHTML = `
-        <div style="text-align:center;padding:32px;color:var(--mt);font-size:12px">
-          <div style="font-size:24px;margin-bottom:8px">⏳</div>Cargando…
-        </div>`;
+      document.getElementById('ns-body').innerHTML =
+        `<div style="color:rgba(0,210,255,.4);font-size:10px;text-align:center;padding:24px 0;letter-spacing:1px">cargando datos…</div>`;
       fetch('/api/nubo-stats')
         .then(r => r.json())
         .then(renderNuboStats)
-        .catch(e => {
+        .catch(() => {
           document.getElementById('ns-body').innerHTML =
-            `<div style="text-align:center;padding:24px;color:var(--rd);font-size:12px">Error: ${e.message}</div>`;
+            `<div style="color:#ef4444;font-size:10px;padding:16px 0">error al conectar con el API</div>`;
         });
     }
 
@@ -5215,50 +5223,63 @@
     }
 
     function renderNuboStats(d) {
-      const pill = (v, color) =>
-        `<span style="background:${color}22;color:${color};font-weight:700;font-size:11px;padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono',monospace">${v}</span>`;
+      const c = (v, col) => `<span style="color:${col};font-weight:700">${v}</span>`;
+      const pct = d.seguimientosAlDia || 0;
+      const pctCol = pct >= 70 ? '#34d399' : pct >= 40 ? '#fbbf24' : '#f87171';
 
-      const row = (label, content) => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr)">
-          <span style="font-size:11px;color:var(--mt)">${label}</span>
-          <span style="font-size:11px;font-weight:600;text-align:right;max-width:280px">${content}</span>
+      const line = (ico, label, val) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(0,210,255,.07)">
+          <span style="font-size:11px;width:16px;text-align:center;flex-shrink:0">${ico}</span>
+          <span style="font-size:10px;color:rgba(255,255,255,.45);flex:1">${label}</span>
+          <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,.9)">${val}</span>
         </div>`;
 
-      const pctColor = d.seguimientosAlDia >= 70 ? '#027a48' : d.seguimientosAlDia >= 40 ? '#b54708' : '#b42318';
+      const hoy = (d.reunionesHoyLista || []);
+      const hoyHtml = hoy.length
+        ? hoy.map(r => `<div style="display:flex;gap:8px;padding:4px 0;border-bottom:1px solid rgba(0,210,255,.06)">
+            <span style="color:#00d2ff;font-size:10px;flex-shrink:0">${r.hora}</span>
+            <span style="color:rgba(255,255,255,.7);font-size:10px">${r.con}</span>
+          </div>`).join('')
+        : `<div style="color:rgba(255,255,255,.25);font-size:10px;padding:4px 0">sin reuniones hoy</div>`;
 
-      const hoyLista = (d.reunionesHoyLista || []).length
-        ? (d.reunionesHoyLista || []).map(r =>
-            `<span style="display:inline-flex;gap:5px;background:var(--bl-l);color:var(--bl);padding:2px 7px;border-radius:5px;font-size:10px;font-family:'JetBrains Mono',monospace">${r.hora} <strong>${r.con}</strong></span>`
-          ).join(' ')
-        : '<span style="color:var(--mt);font-size:10px">—</span>';
+      const atenc = (d.atencion || []);
+      const atencHtml = atenc.length
+        ? atenc.map(a => `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(0,210,255,.06)">
+            <div>
+              <div style="color:rgba(255,255,255,.8);font-size:10px;font-weight:600">${a.nombre}</div>
+              <div style="color:rgba(255,255,255,.3);font-size:9px">${a.comercial}</div>
+            </div>
+            <span style="color:#f87171;font-size:10px;font-weight:700">${a.dias}d</span>
+          </div>`).join('')
+        : `<div style="color:rgba(255,255,255,.25);font-size:10px;padding:4px 0">todo al día ✓</div>`;
 
-      const atencionHtml = (d.atencion || []).length
-        ? `<div style="margin-top:4px;display:flex;flex-direction:column;gap:5px">
-            ${(d.atencion || []).map(a => `
-              <div style="display:flex;justify-content:space-between;align-items:center;background:var(--sur2);border-radius:6px;padding:6px 10px;font-size:10px">
-                <div>
-                  <div style="font-weight:600;color:var(--tx)">${a.nombre}</div>
-                  <div style="color:var(--mt)">${a.comercial}</div>
-                </div>
-                <span style="background:var(--rd-l);color:var(--rd);font-weight:700;font-size:10px;padding:2px 7px;border-radius:5px;font-family:'JetBrains Mono',monospace">${a.dias}d</span>
-              </div>`).join('')}
-           </div>`
-        : '<span style="color:var(--mt);font-size:10px">—</span>';
+      const minR = d.minutasResumen || 'sin minutas';
 
       document.getElementById('ns-body').innerHTML = `
-        ${row('Seguimientos al día', pill(d.seguimientosAlDia + '%', pctColor))}
-        ${row('Primeras reuniones (7d)', pill(d.primerasReuniones7d, '#1a56db'))}
-        ${row('Reuniones ayer', pill(d.reunionesAyer, '#6c7585'))}
-        ${row('Reuniones agendadas (30d)', pill(d.reunionesAgendadas, '#5925dc'))}
-        ${row('Minutas de ayer', `<span style="font-size:10px;color:var(--tx2);font-style:italic">${d.minutasResumen || '—'}</span>`)}
-        ${row('Reuniones hoy', hoyLista)}
-        <div style="padding-top:10px">
-          <div style="font-size:10px;font-weight:700;color:var(--mt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⚠ Más atención</div>
-          ${atencionHtml}
+        <div style="margin-bottom:12px">
+          ${line('📈', 'seguimientos al día', c(pct + '%', pctCol))}
+          ${line('🤝', 'primeras reuniones (7d)', c(d.primerasReuniones7d || 0, '#60a5fa'))}
+          ${line('📅', 'reuniones ayer', c(d.reunionesAyer || 0, 'rgba(255,255,255,.7)'))}
+          ${line('🗓', 'agendadas (30d)', c(d.reunionesAgendadas || 0, 'rgba(255,255,255,.7)'))}
         </div>
-        <div style="text-align:right;margin-top:14px">
-          <button onclick="openNuboStats()" style="background:var(--sur2);border:1px solid var(--bdr);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:10px;color:var(--mt)">↻ Refrescar</button>
+
+        <div style="margin-bottom:12px">
+          <div style="font-size:9px;color:rgba(0,210,255,.5);letter-spacing:1px;margin-bottom:6px">MINUTAS DE AYER</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.6);font-style:italic;line-height:1.5">${minR}</div>
+        </div>
+
+        <div style="margin-bottom:12px">
+          <div style="font-size:9px;color:rgba(0,210,255,.5);letter-spacing:1px;margin-bottom:6px">REUNIONES HOY</div>
+          ${hoyHtml}
+        </div>
+
+        <div>
+          <div style="font-size:9px;color:rgba(255,100,100,.6);letter-spacing:1px;margin-bottom:6px">⚠ REQUIEREN ATENCIÓN</div>
+          ${atencHtml}
         </div>`;
+
+      document.getElementById('ns-ts').textContent =
+        new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
     }
   </script>
 </body>
