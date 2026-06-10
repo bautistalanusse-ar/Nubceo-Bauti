@@ -5204,18 +5204,54 @@
     // ════════════════════════════════════════
     // NUBO STATS — JARVIS PANEL
     // ════════════════════════════════════════
+    function nsDaysSince(iso) {
+      if (!iso) return null;
+      const d = new Date(iso.slice(0, 10)); d.setHours(0, 0, 0, 0);
+      const n = new Date(); n.setHours(0, 0, 0, 0);
+      return Math.round((n - d) / 864e5);
+    }
+
     function openNuboStats() {
       const modal = document.getElementById('ns-modal');
       modal.style.display = 'flex';
-      document.getElementById('ns-body').innerHTML =
-        `<div style="color:rgba(0,210,255,.4);font-size:10px;text-align:center;padding:24px 0;letter-spacing:1px">cargando datos…</div>`;
-      fetch('/api/nubo-stats')
-        .then(r => r.json())
-        .then(renderNuboStats)
-        .catch(() => {
-          document.getElementById('ns-body').innerHTML =
-            `<div style="color:#ef4444;font-size:10px;padding:16px 0">error al conectar con el API</div>`;
-        });
+
+      if (!S || !S.open || S.open.length === 0) {
+        document.getElementById('ns-body').innerHTML =
+          `<div style="color:rgba(0,210,255,.4);font-size:10px;text-align:center;padding:24px 0;letter-spacing:1px">cargando datos del hub…</div>`;
+        return;
+      }
+
+      const deals = S.open.filter(d => OPEN_P.has(d.pipeline_id));
+      const total  = deals.length;
+      const okCount = deals.filter(d => actSt(d) === 'ok').length;
+
+      // Actividades de reunión de los últimos 7 días (desde S.acts si existe)
+      const now = new Date();
+      const d7  = new Date(now); d7.setDate(d7.getDate() - 7); d7.setHours(0,0,0,0);
+      const acts = S.acts || [];
+      const primerasReuniones7d = acts.filter(a =>
+        a.type === 'meeting' && a.done && new Date(a.due_date) >= d7
+      ).length;
+
+      const atencion = deals
+        .filter(d => ['noact', 'over', 'over_future'].includes(actSt(d)))
+        .map(d => ({
+          nombre:    d.title || '—',
+          comercial: gv(d),
+          dias:      nsDaysSince(d.last_activity_date) ?? nsDaysSince((d.add_time || '').slice(0, 10)) ?? 0
+        }))
+        .sort((a, b) => b.dias - a.dias)
+        .slice(0, 5);
+
+      renderNuboStats({
+        seguimientosAlDia:   total ? Math.round(okCount / total * 100) : 0,
+        primerasReuniones7d,
+        reunionesAyer:       0,
+        minutasResumen:      'disponible con Google Calendar',
+        reunionesHoyLista:   [],
+        reunionesAgendadas:  0,
+        atencion
+      });
     }
 
     function closeNuboStats() {
