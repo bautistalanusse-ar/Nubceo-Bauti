@@ -16,9 +16,17 @@
 const PD_BASE = 'https://api.pipedrive.com/v1';
 const OPEN_PIPELINES = new Set([149, 151, 159]);
 
+// Acepta cualquiera de estos nombres de env var
+const PD_TOKEN = () =>
+  process.env.PIPEDRIVE_TOKEN ||
+  process.env.PIPEDRIVE_API_TOKEN ||
+  process.env.PD_TOKEN ||
+  process.env.PD_API_TOKEN ||
+  '';
+
 async function pdFetch(path, params = {}) {
   const url = new URL(`${PD_BASE}${path}`);
-  url.searchParams.set('api_token', process.env.PIPEDRIVE_TOKEN);
+  url.searchParams.set('api_token', PD_TOKEN());
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
   const r = await fetch(url);
   if (!r.ok) return [];
@@ -240,6 +248,13 @@ module.exports = async function handler(req, res) {
   const calVal = cal.status === 'fulfilled' ? cal.value : {};
   const min    = minR.status === 'fulfilled' ? minR.value : 'sin minutas';
 
+  const _debug = {
+    pd:  pd.status  === 'rejected' ? pd.reason?.message  : 'ok',
+    cal: cal.status === 'rejected' ? cal.reason?.message : 'ok',
+    min: minR.status === 'rejected' ? minR.reason?.message : 'ok',
+    hasToken: !!PD_TOKEN()
+  };
+
   return res.status(200).json({
     seguimientosAlDia:  pdVal.seguimientosAlDia  ?? 0,
     primerasReuniones7d: pdVal.primerasReuniones7d ?? 0,
@@ -247,6 +262,7 @@ module.exports = async function handler(req, res) {
     minutasResumen:     min,
     reunionesHoyLista:  calVal.reunionesHoyLista  ?? [],
     reunionesAgendadas: calVal.reunionesAgendadas ?? 0,
-    atencion:           pdVal.atencion            ?? []
+    atencion:           pdVal.atencion            ?? [],
+    _debug
   });
 };
