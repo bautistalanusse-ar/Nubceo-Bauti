@@ -1,7 +1,5 @@
 {
   "functions": {
-    "api/nubo-stats.js": {
-      "runtime": "nodejs18.x"
-    }
+    "api/nubo-stats.js": {}
   }
 }
